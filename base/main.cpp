@@ -96,7 +96,7 @@ void CreateSol(){
 
 void Creationfeet(){
 	
-	feet = osgDB::readNodeFile("wacom_usb.3ds");
+	feet = osgDB::readNodeFile("feet.obj");
 	
 	transformFeet = new osg::PositionAttitudeTransform;
 	transformFeet->setUpdateCallback(new Rotation);
