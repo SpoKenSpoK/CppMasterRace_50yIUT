@@ -9,6 +9,7 @@
 #include <osgGA/GUIEventHandler>
 #include <osgViewer/ViewerEventHandlers>
 #include <osgGA/DriveManipulator>
+#include <osgSim/DOFTransform>
 #include "renderToTexture.h"
 //#include "fpsCamera.h"
 
@@ -103,7 +104,7 @@ void CreateSol(){
 	osg::Vec3(0.0, 0.0, 0.0), // Coin de départ
 	osg::Vec3(100.0, 0.0, 0.0),  // largeur
 	osg::Vec3(0.0, 100.0, 0.0),  // hauteur
-	0.0, 0.0, 5.0, 5.0); 		// Coordonnées de texture gauche/bas/droit/haut
+	0.0, 0.0, 3.0, 3.0); 		// Coordonnées de texture gauche/bas/droit/haut
 								// Si vous mettez 4.0 à la place de 1.0,
 								// la texture sera répétée 4 fois
 	quadSol->getOrCreateStateSet()->setTextureAttributeAndModes(0, textureSol.get());
@@ -138,11 +139,14 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 	texture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
 	texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
 	texture->setImage(image);
-setIntersectTraversalMask eSet->ref();
+    //assign the material and texture to the sphere
+    osg::StateSet *sphereStateSet = geode->getOrCreateStateSet();
+    sphereStateSet->ref();
 	sphereStateSet->setAttribute(material);
 	sphereStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
 
-	osg::Node* aile = osgDB::readNodeFile("wing.3DS");
+	osg::Node* aileD = osgDB::readNodeFile("wingD.obj");
+	osg::Node* aileG = osgDB::readNodeFile("wingG.obj");
 
 	osg::Group* troupeau = new osg::Group;
 	for(unsigned int i = 0; i < nb_chikoiseau; ++i){
@@ -155,16 +159,16 @@ setIntersectTraversalMask eSet->ref();
 		transformChikoiseau->addChild(geode);
 		//transformChikoiseau->setUpdateCallback(new Deplacement);
 		osg::PositionAttitudeTransform* transformAileG = new osg::PositionAttitudeTransform();
-		transformAileG->setPosition(osg::Vec3(randX+1, randY+50, 5.0));
-		transformAileG->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+		transformAileG->setPosition(osg::Vec3(randX, randY, 6.0));
+		transformAileG->setAttitude(osg::Quat(osg::DegreesToRadians(angle+90), osg::Vec3(0.0, 0.0, 1.0)));
 		osg::PositionAttitudeTransform* transformAileD = new osg::PositionAttitudeTransform();
-		transformAileD->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
-		transformAileD->setPosition(osg::Vec3(randX, randY+1, 5.0));
+		transformAileD->setAttitude(osg::Quat(osg::DegreesToRadians(angle+90), osg::Vec3(0.0, 0.0, 1.0)));
+		transformAileD->setPosition(osg::Vec3(randX, randY, 6.0));
 
-		transformAileG->setScale(osg::Vec3(0.1,0.1,0.1));
-		transformAileD->setScale(osg::Vec3(0.1,0.1,0.1));
-		transformAileG->addChild(aile);
-		transformAileD->addChild(aile);
+		transformAileG->setScale(osg::Vec3(0.5,0.5,0.5));
+		transformAileD->setScale(osg::Vec3(0.5,0.5,0.5));
+		transformAileG->addChild(aileG);
+		transformAileD->addChild(aileD);
 
 		osg::PositionAttitudeTransform* Chikoiseau = new osg::PositionAttitudeTransform();
 
