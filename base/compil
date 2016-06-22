@@ -1,0 +1,1 @@
+g++ -o main main.cpp renderToTexture.cpp -losg -losgShadow -losgDB -losgParticle -losgGA -losgViewer -losgText -losgUtil
