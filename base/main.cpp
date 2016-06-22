@@ -97,6 +97,26 @@ void CreateSol(){
 	geodeSol->addDrawable(quadSol);
 }
 
+osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley){
+
+	osg::Sphere* corpsChikoiseau = new osg::Sphere(osg::Vec3(0,0,0), 1.0);
+	osg::ShapeDrawable* shapeDrawable = new osg::ShapeDrawable(corpsChikoiseau);
+	osg::Geode* geode = new osg::Geode();
+	geode->addDrawable(shapeDrawable);
+	
+	osg::Group* troupeau = new osg::Group;
+	for(unsigned int i = 0; i < nb_chikoiseau; ++i){
+		osg::PositionAttitudeTransform* transformChikoiseau = new osg::PositionAttitudeTransform();
+		transformChikoiseau->setPosition(osg::Vec3(rand()%(int)taillex, rand()%(int)tailley, 0));
+		float angle = rand()%360;
+		transformChikoiseau->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+		transformChikoiseau->addChild(geode);
+		//transformChikoiseau->setUpdateCallback(new Deplacement);
+		troupeau->addChild(transformChikoiseau);
+	}
+	return troupeau;
+}
+
 void Creationfeet(){
 	
 	feet = osgDB::readNodeFile("jack.3DS");
@@ -137,7 +157,7 @@ int main(void){
 	CreateSol();
 	Creationfeet();
 	scene->addChild(geodeSol);
-	
+	scene->addChild(creation_troupeau_chikoiseau(50, 100, 100));
 	viewer.setSceneData(root);
 	
 	osg::ref_ptr<GestionEvenements> gestionnaire = new GestionEvenements();
