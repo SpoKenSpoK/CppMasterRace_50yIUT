@@ -1,6 +1,7 @@
 #include <osgViewer/Viewer>
 #include <osg/ShapeDrawable>
 #include <osg/Material>
+#include <osg/Texture2D>
 #include <osgDB/ReadFile>
 #include <osg/Geometry>
 #include <osg/PositionAttitudeTransform>
@@ -103,6 +104,32 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 	osg::ShapeDrawable* shapeDrawable = new osg::ShapeDrawable(corpsChikoiseau);
 	osg::Geode* geode = new osg::Geode();
 	geode->addDrawable(shapeDrawable);
+	
+	// create a simple material
+	osg::Material *material = new Material();
+	material->setEmission(Material::FRONT, Vec4(0.8, 0.8, 0.8, 1.0));
+
+	// create a texture
+	// load image for texture
+	osg::Image *image = osgDB::readImageFile("remy.jpg");
+	if (!image) {
+		std::cout << "Couldn't load texture." << std::endl;
+		return NULL;
+	}
+	osg::Texture2D *texture = new Texture2D;
+	texture->setDataVariance(Object::DYNAMIC);
+	texture->setFilter(Texture::MIN_FILTER, Texture::LINEAR_MIPMAP_LINEAR);
+	texture->setFilter(Texture::MAG_FILTER, Texture::LINEAR);
+	texture->setWrap(Texture::WRAP_S, Texture::CLAMP);
+	texture->setWrap(Texture::WRAP_T, Texture::CLAMP);
+	texture->setImage(image);
+
+	// assign the material and texture to the sphere
+	osg::StateSet *sphereStateSet = geode->getOrCreateStateSet();
+	sphereStateSet->ref();
+	sphereStateSet->setAttribute(material);
+	sphereStateSet->setTextureAttributeAndModes(0, texture, StateAttribute::ON);
+	
 	
 	osg::Group* troupeau = new osg::Group;
 	for(unsigned int i = 0; i < nb_chikoiseau; ++i){
