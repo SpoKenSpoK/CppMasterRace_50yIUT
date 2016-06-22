@@ -95,7 +95,7 @@ void CreateSol(){
 
 void Creationfeet(){
 	
-	feet = osgDB::readNodeFile("LED.STL");
+	feet = osgDB::readNodeFile("jack.3DS");
 	
 	transformFeet = new osg::PositionAttitudeTransform;
 	transformFeet->setUpdateCallback(new Rotation);
