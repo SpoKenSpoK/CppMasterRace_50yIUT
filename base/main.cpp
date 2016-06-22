@@ -100,7 +100,7 @@ void CreateSol(){
 
 osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley){
 
-	osg::Sphere* corpsChikoiseau = new osg::Sphere(osg::Vec3(0,0,5.0), 1.0);
+	osg::Sphere* corpsChikoiseau = new osg::Sphere(osg::Vec3(0.0,0.0,5.0), 1.0);
 	osg::ShapeDrawable* shapeDrawable = new osg::ShapeDrawable(corpsChikoiseau);
 	osg::Geode* geode = new osg::Geode();
 	geode->addDrawable(shapeDrawable);
@@ -129,24 +129,44 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 	sphereStateSet->ref();
 	sphereStateSet->setAttribute(material);
 	sphereStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
-	
+	osg::Node* aile = osgDB::readNodeFile("wing.3DS");
 	
 	osg::Group* troupeau = new osg::Group;
 	for(unsigned int i = 0; i < nb_chikoiseau; ++i){
+		int randX = rand()%(int)taillex;
+		int randY = rand()%(int)tailley;
 		osg::PositionAttitudeTransform* transformChikoiseau = new osg::PositionAttitudeTransform();
-		transformChikoiseau->setPosition(osg::Vec3(rand()%(int)taillex, rand()%(int)tailley, 0));
+		transformChikoiseau->setPosition(osg::Vec3(randX, randY, 1.0));
 		float angle = rand()%360;
 		transformChikoiseau->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
 		transformChikoiseau->addChild(geode);
 		//transformChikoiseau->setUpdateCallback(new Deplacement);
-		troupeau->addChild(transformChikoiseau);
+		osg::PositionAttitudeTransform* transformAileG = new osg::PositionAttitudeTransform();
+		transformAileG->setPosition(osg::Vec3(randX+1, randY+50, 5.0));
+		transformAileG->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+		osg::PositionAttitudeTransform* transformAileD = new osg::PositionAttitudeTransform();
+		transformAileD->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+		transformAileD->setPosition(osg::Vec3(randX, randY+1, 5.0));
+
+		transformAileG->setScale(osg::Vec3(0.1,0.1,0.1));
+		transformAileD->setScale(osg::Vec3(0.1,0.1,0.1));
+		transformAileG->addChild(aile);
+		transformAileD->addChild(aile);
+
+		osg::PositionAttitudeTransform* Chikoiseau = new osg::PositionAttitudeTransform();
+
+		Chikoiseau->addChild(transformAileD);
+		Chikoiseau->addChild(transformAileG);
+		Chikoiseau->addChild(transformChikoiseau);
+
+		troupeau->addChild(Chikoiseau);
 	}
 	return troupeau;
 }
 
 void Creationfeet(){
 	
-	feet = osgDB::readNodeFile("jack.3DS");
+	feet = osgDB::readNodeFile("feet.3ds");
 	
 	transformFeet = new osg::PositionAttitudeTransform;
 	transformFeet->setUpdateCallback(new Rotation);
@@ -165,7 +185,7 @@ int main(void){
 	viewer.getCamera()->setClearColor( osg::Vec4( 0.0,0.0,0.0,1) );
 	viewer.addEventHandler(new osgViewer::StatsHandler);
 	manip = new osgGA::DriveManipulator();
-	viewer.setCameraManipulator(manip.get());
+	//viewer.setCameraManipulator(manip.get());
 	scene = new osg::Group;
 	root = new osg::Group;
 	
