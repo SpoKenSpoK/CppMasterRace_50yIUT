@@ -95,13 +95,13 @@ void CreateSol(){
 
 void Creationfeet(){
 	
-	feet = osgDB::readNodeFile("feet.obj");
+	feet = osgDB::readNodeFile("LED.STL");
 	
 	transformFeet = new osg::PositionAttitudeTransform;
 	transformFeet->setUpdateCallback(new Rotation);
 	transformFeet->setPosition(osg::Vec3(0,0,0));
 	//transformFeet->setScale(osg::Vec3(0.01,0.01,0.01));
-	//transformFeet->setScale(osg::Vec3(1000,1000,1000));
+	transformFeet->setScale(osg::Vec3(1000,1000,1000));
 	transformFeet->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON); 
 	transformFeet->addChild(feet);
 	
