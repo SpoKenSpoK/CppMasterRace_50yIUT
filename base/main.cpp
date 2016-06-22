@@ -96,7 +96,7 @@ void CreateSol(){
 
 void Creationfeet(){
 	
-	feet = osgDB::readNodeFile("wacom_usb.3ds");
+	feet = osgDB::readNodeFile("standard__cherrymx_keycap.stl");
 	
 	transformFeet = new osg::PositionAttitudeTransform;
 	transformFeet->setUpdateCallback(new Rotation);
