@@ -7,7 +7,9 @@
 #include <osgGA/NodeTrackerManipulator>
 #include <osgGA/GUIEventHandler>
 #include <osgViewer/ViewerEventHandlers>
+#include <osgGA/DriveManipulator>
 #include "renderToTexture.h"
+//#include "fpsCamera.h"
 
 osg::ref_ptr<osg::Group> root;
 osgViewer::Viewer viewer;
@@ -20,6 +22,8 @@ osg::ref_ptr<osg::PositionAttitudeTransform> transformFeet;
 osg::ref_ptr<osg::Node> feet;
 
 osg::ref_ptr<osg::Geode> geodeSol;
+
+osg::ref_ptr<osgGA::DriveManipulator> manip;
 
 float angle = 0.0;
 
@@ -101,7 +105,7 @@ void Creationfeet(){
 	transformFeet->setUpdateCallback(new Rotation);
 	transformFeet->setPosition(osg::Vec3(0,0,0));
 	//transformFeet->setScale(osg::Vec3(0.01,0.01,0.01));
-	transformFeet->setScale(osg::Vec3(1000,1000,1000));
+	//transformFeet->setScale(osg::Vec3(1000,1000,1000));
 	transformFeet->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON); 
 	transformFeet->addChild(feet);
 	
@@ -113,6 +117,8 @@ int main(void){
 	viewer.setUpViewInWindow( 100, 50, 800, 600 );
 	viewer.getCamera()->setClearColor( osg::Vec4( 0.0,0.0,0.0,1) );
 	viewer.addEventHandler(new osgViewer::StatsHandler);
+	manip = new osgGA::DriveManipulator();
+	viewer.setCameraManipulator(manip.get());
 	scene = new osg::Group;
 	root = new osg::Group;
 	
