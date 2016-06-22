@@ -16,8 +16,8 @@ osg::Group* scene;
 osg::ref_ptr<osg::Geometry> quadSol;
 osg::ref_ptr<osg::Texture2D> textureSol;
 
-osg::ref_ptr<osg::PositionAttitudeTransform> transformTank;
-osg::ref_ptr<osg::Node> tank;
+osg::ref_ptr<osg::PositionAttitudeTransform> transformFeet;
+osg::ref_ptr<osg::Node> feet;
 
 osg::ref_ptr<osg::Geode> geodeSol;
 
@@ -94,18 +94,19 @@ void CreateSol(){
 	geodeSol->addDrawable(quadSol);
 }
 
-void CreationTank(){
+void Creationfeet(){
 	
-	tank = osgDB::readNodeFile("t72-tank_des.flt");
+	feet = osgDB::readNodeFile("wacom_usb.3ds");
 	
-	transformTank = new osg::PositionAttitudeTransform;
-	transformTank->setUpdateCallback(new Rotation);
-	transformTank->setPosition(osg::Vec3(0,0,0));
-	//transformTank->setScale(osg::Vec3(2,2,2));
-	transformTank->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON); 
-	transformTank->addChild(tank);
+	transformFeet = new osg::PositionAttitudeTransform;
+	transformFeet->setUpdateCallback(new Rotation);
+	transformFeet->setPosition(osg::Vec3(0,0,0));
+	//transformFeet->setScale(osg::Vec3(0.01,0.01,0.01));
+	transformFeet->setScale(osg::Vec3(1000,1000,1000));
+	transformFeet->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON); 
+	transformFeet->addChild(feet);
 	
-	scene->addChild(transformTank);
+	scene->addChild(transformFeet);
 }
 
 int main(void){
@@ -129,7 +130,7 @@ int main(void){
 	
 	root->addChild(scene);
 	CreateSol();
-	CreationTank();
+	Creationfeet();
 	scene->addChild(geodeSol);
 	
 	viewer.setSceneData(root);
