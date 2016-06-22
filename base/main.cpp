@@ -100,14 +100,14 @@ void CreateSol(){
 
 osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley){
 
-	osg::Sphere* corpsChikoiseau = new osg::Sphere(osg::Vec3(0,0,0), 1.0);
+	osg::Sphere* corpsChikoiseau = new osg::Sphere(osg::Vec3(0,0,5.0), 1.0);
 	osg::ShapeDrawable* shapeDrawable = new osg::ShapeDrawable(corpsChikoiseau);
 	osg::Geode* geode = new osg::Geode();
 	geode->addDrawable(shapeDrawable);
 	
 	// create a simple material
-	osg::Material *material = new Material();
-	material->setEmission(Material::FRONT, Vec4(0.8, 0.8, 0.8, 1.0));
+	osg::Material *material = new osg::Material();
+	material->setEmission(osg::Material::FRONT, osg::Vec4(0.8, 0.8, 0.8, 1.0));
 
 	// create a texture
 	// load image for texture
@@ -116,19 +116,19 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 		std::cout << "Couldn't load texture." << std::endl;
 		return NULL;
 	}
-	osg::Texture2D *texture = new Texture2D;
-	texture->setDataVariance(Object::DYNAMIC);
-	texture->setFilter(Texture::MIN_FILTER, Texture::LINEAR_MIPMAP_LINEAR);
-	texture->setFilter(Texture::MAG_FILTER, Texture::LINEAR);
-	texture->setWrap(Texture::WRAP_S, Texture::CLAMP);
-	texture->setWrap(Texture::WRAP_T, Texture::CLAMP);
+	osg::Texture2D *texture = new osg::Texture2D;
+	texture->setDataVariance(osg::Object::DYNAMIC);
+	texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
+	texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+	texture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
+	texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
 	texture->setImage(image);
 
 	// assign the material and texture to the sphere
 	osg::StateSet *sphereStateSet = geode->getOrCreateStateSet();
 	sphereStateSet->ref();
 	sphereStateSet->setAttribute(material);
-	sphereStateSet->setTextureAttributeAndModes(0, texture, StateAttribute::ON);
+	sphereStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
 	
 	
 	osg::Group* troupeau = new osg::Group;
