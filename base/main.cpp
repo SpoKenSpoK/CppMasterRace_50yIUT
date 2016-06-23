@@ -139,6 +139,19 @@ public:
     }
 };
 
+float ventiradAngle = 0.0;
+
+class ventiradCallback : public osg::NodeCallback
+{
+public:
+    virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
+    {
+    	ventiradAngle += 5.0;
+    	osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
+		pos->setAttitude(osg::Quat(osg::DegreesToRadians(ventiradAngle), osg::Vec3(1.0, 0.0, 0.0)));
+    }
+};
+
 float angleAilesG = 0.0;
 
 class FlapFlapG : public osg::NodeCallback
@@ -374,6 +387,57 @@ osg::ref_ptr<osg::Group> creation_rams(int nb_rams, float taillex, float tailley
     return rams;
 }
 
+class ChercheNoeud : public osg::NodeVisitor
+{
+public:
+	ChercheNoeud ( const std::string& name )
+	: osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ), _name( name ) {}
+	// Méthode appelée pour chaque nœud du graphe. Si son nom correspond à celui passé
+	// en paramètre au constructeur, on sauve l'adresse du nœud dans _node
+	virtual void apply( osg::Node& node )
+	{
+	if (node.getName() == _name)
+	_node = &node;
+	traverse( node ); // On continue le parcours du graphe
+	}
+	osg::Node* getNode() { return _node.get(); }
+protected:
+	std::string _name;
+	osg::ref_ptr<osg::Node> _node;
+};
+
+ChercheNoeud rechercheBlade("Scythe_Blade");
+
+osg::ref_ptr<osg::Group> creation_ventirads(int nb_ventirads, float taillex, float tailley){
+    osg::ref_ptr<osg::Node> ventirad = osgDB::readNodeFile("ventirad.obj");
+
+    osg::ref_ptr<osg::Group> ventirads = new osg::Group;
+    for(unsigned int i=0; i<= nb_ventirads; ++i){
+        int randX = rand()%(int)taillex;
+        /*if(randX < taillex/2) randX -= taillex/2;
+        else randX += taillex/2;*/
+		int randY = rand()%(int)tailley;
+        /*if(randY < tailley/2) randY -= tailley/2;
+        else randY += tailley/2;*/
+		angle = rand()%360;
+
+        osg::ref_ptr<osg::PositionAttitudeTransform> tsVentirad = new osg::PositionAttitudeTransform();
+
+        tsVentirad->setScale(osg::Vec3(0.1, 0.1, 0.1));
+        tsVentirad->setAttitude(osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(1.0, 0.0, 0.0), osg::DegreesToRadians(0.0), osg::Vec3(0.0, 1.0, 0.0), osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+        tsVentirad->setPosition(osg::Vec3(randX, randY, 0.0));
+
+        rechercheBlade.getNode()->setUpdateCallback(new ventiradCallback);
+
+        tsVentirad->addChild(ventirad);
+
+        tsVentirad->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
+
+		ventirads->addChild(tsVentirad);
+    }
+    return ventirads;
+}
+
 osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex, float tailley){
     osg::ref_ptr<osg::Node> feetD = osgDB::readNodeFile("feetD.obj");
     osg::ref_ptr<osg::Node> feetG = osgDB::readNodeFile("feetG.obj");
@@ -580,20 +644,13 @@ void CreationCD(){
     osg::ref_ptr<osg::PositionAttitudeTransform> transformCD;
     osg::ref_ptr<osg::Node> CD;
 
- 	CD = osgDB::readNodeFile("DVD.stl");
+ 	CD = osgDB::readNodeFile("CD.3ds");
 
  	transformCD = new osg::PositionAttitudeTransform;
  	transformCD->setUpdateCallback(new RotationCD);
  	transformCD->setPosition(osg::Vec3(0,0,6));
- 	CD->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
-    osg::Texture2D* textureCD = new osg::Texture2D;
-	textureCD->setImage(osgDB::readImageFile("raffin.jpg"));
-	textureCD->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR );
-	textureCD->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR );
-	textureCD->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
-	textureCD->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
+ 	transformCD->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
 
-    CD->getOrCreateStateSet()->setTextureAttributeAndModes(0, textureCD, osg::StateAttribute::ON);
  	transformCD->addChild(CD);
     transformCD->setUpdateCallback(new RefreshSpeed);
 
@@ -624,7 +681,7 @@ int main(void){
 	viewer.getCamera()->setClearColor( osg::Vec4( 0.0,0.0,0.0,1) );
 	viewer.addEventHandler(new osgViewer::StatsHandler);
 	manip = new osgGA::DriveManipulator();
-	viewer.setCameraManipulator(manip.get());
+	//viewer.setCameraManipulator(manip.get());
 	scene = new osg::Group;
 	root = new osg::Group;
 
@@ -642,7 +699,7 @@ int main(void){
 	root->addChild(scene);
 	CreateSol();
     //Creationfeet();
-    //CreationCD();
+    CreationCD();
 	scene->addChild(geodeSol);
 	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"remy.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"raffin.jpg"));
