@@ -22,6 +22,7 @@ osg::ref_ptr<osg::Geometry> quadSol;
 osg::ref_ptr<osg::Texture2D> textureSol;
 
 osg::ref_ptr<osg::PositionAttitudeTransform> transformFeet;
+osg::ref_ptr<osg::PositionAttitudeTransform> patSpeed;
 osg::ref_ptr<osg::Node> feet;
 
 osg::ref_ptr<osg::Geode> geodeSol;
@@ -39,7 +40,7 @@ public:
 		double vitesse = 0.0;
 		vitesse = manip->getVelocity();
 		if(vitesse < -2.0) vitesse += 1.0;
-        if(vitesse > 10.0) vitesse -= 1.0;
+        if(vitesse > 20.0) vitesse -= 1.0;
         manip->setVelocity(vitesse);
         manip->setIntersectTraversalMask(0);
     }
@@ -588,8 +589,6 @@ void CreationCD(){
 
     CD->getOrCreateStateSet()->setTextureAttributeAndModes(0, textureCD, osg::StateAttribute::ON);
  	transformCD->addChild(CD);
-
-
     transformCD->setUpdateCallback(new RefreshSpeed);
 
  	scene->addChild(transformCD);
@@ -647,6 +646,10 @@ int main(void){
     scene->addChild(creation_condens(50, fieldX, fieldY));
     scene->addChild(creation_rams(200, fieldX, fieldY));
 	viewer.setSceneData(root);
+
+    /*patSpeed = new osg::PositionAttitudeTransform;
+    patSpeed->setUpdateCallback(new RefreshSpeed);
+    scene->addChild(patSpeed);*/
 
 	osg::ref_ptr<GestionEvenements> gestionnaire = new GestionEvenements();
 	viewer.addEventHandler(gestionnaire.get());
