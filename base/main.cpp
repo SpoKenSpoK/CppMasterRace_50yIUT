@@ -230,7 +230,7 @@ osg::ref_ptr<osg::Group> creation_lampadaires(int nb_lampadaires, float taillex,
     //osg::ref_ptr<osg::Node> light = osg::LightSource();
 
     osg::ref_ptr<osg::Group> lampadaires = new osg::Group;
-    for(unsigned int i=0; i<= nb_lampadaires;  ++i){
+    for(unsigned int i=0; i<= nb_lampadaires; ++i){
         int randX = rand()%(int)taillex;
 		int randY = rand()%(int)tailley;
 
@@ -251,6 +251,18 @@ osg::ref_ptr<osg::Group> creation_lampadaires(int nb_lampadaires, float taillex,
     return lampadaires;
 }
 
+<<<<<<< HEAD
+=======
+void recursiveExtremite(int& x, int& y, const float& tx, const float& ty){
+	if( x < 0 or x > tx xor y < 0 or y > ty){
+		x = rand()%(int)tx;
+		y = rand()%(int)ty;
+
+		recursiveExtremite(x, y, tx, ty);
+	}
+}
+
+>>>>>>> 46638bcfe9583d51bc845a0a2ad6b5d7732c9460
 osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex, float tailley){
     osg::ref_ptr<osg::Node> feetD = osgDB::readNodeFile("feetD.obj");
     osg::ref_ptr<osg::Node> feetG = osgDB::readNodeFile("feetG.obj");
@@ -280,10 +292,11 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
 
 		osg::ref_ptr<osg::PositionAttitudeTransform> theTouche = new osg::PositionAttitudeTransform();
 
+		theTouche->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
 		theTouche->addChild(tsTouche);
 		theTouche->addChild(tsFeetD);
 		theTouche->addChild(tsFeetG);
-
+        
         //Path pour les touches
         osg::ref_ptr<osg::AnimationPath> touchePath = new osg::AnimationPath;
         //Définition du mode de bouclage sur le chemin défini
