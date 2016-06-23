@@ -536,7 +536,7 @@ osg::Group* creation_panneaux(int nb_panneaux, float taillex, float tailley){
 
 	// create a texture
 	// load image for texture
-	osg::Image *image = osgDB::readImageFile("doge.jpeg");
+	osg::Image *image = osgDB::readImageFile("stravingo.jpeg");
 	if (!image) {
 		std::cout << "Couldn't load texture." << std::endl;
 		return NULL;
