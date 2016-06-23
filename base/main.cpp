@@ -10,6 +10,7 @@
 #include <osgViewer/ViewerEventHandlers>
 #include <osgGA/DriveManipulator>
 #include <osgSim/DOFTransform>
+#include <osg/AnimationPath>
 #include "renderToTexture.h"
 //#include "fpsCamera.h"
 
@@ -37,8 +38,8 @@ public:
     {
 		double vitesse = 0.0;
 		vitesse = manip->getVelocity();
-		if(vitesse < 0.0) vitesse *= -1.0;
-        if(vitesse > 10.0) vitesse -= 1.0;
+		if(vitesse < -5.0) vitesse += 1.0;
+        if(vitesse > 20.0) vitesse -= 1.0;
         manip->setVelocity(vitesse);
         manip->setIntersectTraversalMask(0);
     }
@@ -250,15 +251,6 @@ osg::ref_ptr<osg::Group> creation_lampadaires(int nb_lampadaires, float taillex,
     return lampadaires;
 }
 
-void recursiveExtremite(int& x, int& y, const float& tx, const float& ty){
-	if( x < 0 or x > tx or y < 0 or y > ty){
-		x = rand()%(int)tx;
-		y = rand()%(int)ty;
-
-		recursiveExtremite(x, y, tx, ty);
-	}
-}
-
 osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex, float tailley){
     osg::ref_ptr<osg::Node> feetD = osgDB::readNodeFile("feetD.obj");
     osg::ref_ptr<osg::Node> feetG = osgDB::readNodeFile("feetG.obj");
@@ -292,14 +284,10 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
 		theTouche->addChild(tsFeetD);
 		theTouche->addChild(tsFeetG);
 
-		theTouche->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
-
-		//recursiveExtremite(randX, randY, taillex, tailley);
-
-		//float tempOne = randX+(taillex/2);
-		//float tempTwo = randY-(tailley/2);
-
-		//theTouche->setPosition(osg::Vec3(tempOne, tempTwo, -1.0));
+        //Path pour les touches
+        osg::ref_ptr<osg::AnimationPath> touchePath = new osg::AnimationPath;
+        //Définition du mode de bouclage sur le chemin défini
+        touchePath->setLoopMode(osg::AnimationPath)
 
 		touches->addChild(theTouche);
     }
@@ -390,17 +378,13 @@ void CreationCD(){
  	transformCD = new osg::PositionAttitudeTransform;
  	transformCD->setUpdateCallback(new RotationCD);
  	transformCD->setPosition(osg::Vec3(0,0,6));
- 	transformCD->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
+ 	CD->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
     osg::Texture2D* textureCD = new osg::Texture2D;
 	textureCD->setImage(osgDB::readImageFile("raffin.jpg"));
 	textureCD->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR );
 	textureCD->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR );
 	textureCD->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
 	textureCD->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
-
-	osg::Material *material = new osg::Material();
-	material->setEmission(osg::Material::FRONT, osg::Vec4(0.8, 0.8, 0.8, 1.0));
-	CD->setAttribute(material);
 
     CD->getOrCreateStateSet()->setTextureAttributeAndModes(0, textureCD, osg::StateAttribute::ON);
  	transformCD->addChild(CD);
@@ -435,7 +419,7 @@ int main(void){
 	viewer.getCamera()->setClearColor( osg::Vec4( 0.0,0.0,0.0,1) );
 	viewer.addEventHandler(new osgViewer::StatsHandler);
 	manip = new osgGA::DriveManipulator();
-	//viewer.setCameraManipulator(manip.get());
+	viewer.setCameraManipulator(manip.get());
 	scene = new osg::Group;
 	root = new osg::Group;
 
@@ -452,11 +436,11 @@ int main(void){
 
 	root->addChild(scene);
 	CreateSol();
-    Creationfeet();
-    CreationCD();
+    //Creationfeet();
+    //CreationCD();
 	scene->addChild(geodeSol);
 	scene->addChild(creation_troupeau_chikoiseau(50, fieldX, fieldY));
-    //scene->addChild(creation_troupeau_touches(15, fieldX, fieldY));
+    scene->addChild(creation_troupeau_touches(15, fieldX, fieldY));
     scene->addChild(creation_lampadaires(50, fieldX, fieldY));
     scene->addChild(creation_procs(50, fieldX, fieldY));
     scene->addChild(creation_condens(50, fieldX, fieldY));
