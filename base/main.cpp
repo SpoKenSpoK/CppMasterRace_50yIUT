@@ -529,7 +529,7 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 	return troupeau;
 }
 
-osg::Group* creation_panneaux(int nb_panneaux, float taillex, float tailley){
+osg::Group* creation_panneaux(int nb_panneaux, float taillex, float tailley, std::string nomImage){
 
 	osg::Box* shapePanneau = new osg::Box(osg::Vec3(0.0,0.0,7.0), 0.01, 4.0, 4.0);
 	osg::ShapeDrawable* shapeDrawable = new osg::ShapeDrawable(shapePanneau);
@@ -542,7 +542,7 @@ osg::Group* creation_panneaux(int nb_panneaux, float taillex, float tailley){
 
 	// create a texture
 	// load image for texture
-	osg::Image *image = osgDB::readImageFile("stravingo.jpeg");
+	osg::Image *image = osgDB::readImageFile(nomImage);
 	if (!image) {
 		std::cout << "Couldn't load texture." << std::endl;
 		return NULL;
@@ -644,10 +644,14 @@ int main(void){
     //Creationfeet();
     //CreationCD();
 	scene->addChild(geodeSol);
-	scene->addChild(creation_troupeau_chikoiseau(100, fieldX, fieldY,"remy.jpg"));
-	scene->addChild(creation_troupeau_chikoiseau(100, fieldX, fieldY,"raffin.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(80, fieldX, fieldY,"remy.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(80, fieldX, fieldY,"raffin.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(80, fieldX, fieldY,"thon.jpeg"));
+	scene->addChild(creation_troupeau_chikoiseau(80, fieldX, fieldY,"triboulet.jpg"));
     scene->addChild(creation_troupeau_touches(50, fieldX, fieldY));
-    scene->addChild(creation_panneaux(300, fieldX, fieldY));
+    scene->addChild(creation_panneaux(100, fieldX, fieldY, "stravingo.jpeg"));
+    scene->addChild(creation_panneaux(100, fieldX, fieldY, "doge.jpeg"));
+    scene->addChild(creation_panneaux(100, fieldX, fieldY, "nvidia.png"));
     scene->addChild(creation_lampadaires(50, fieldX, fieldY));
     scene->addChild(creation_procs(50, fieldX, fieldY));
     scene->addChild(creation_condens(50, fieldX, fieldY));
