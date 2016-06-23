@@ -374,7 +374,7 @@ osg::ref_ptr<osg::Group> creation_rams(int nb_rams, float taillex, float tailley
 osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex, float tailley){
     osg::ref_ptr<osg::Node> feetD = osgDB::readNodeFile("feetD.obj");
     osg::ref_ptr<osg::Node> feetG = osgDB::readNodeFile("feetG.obj");
-    osg::ref_ptr<osg::Node> touche = osgDB::readNodeFile("key2.stl");
+    osg::ref_ptr<osg::Node> touche = osgDB::readNodeFile("key.3ds");
 
     osg::ref_ptr<osg::Group> touches = new osg::Group;
     for(unsigned int i=0; i<= nb_touche;  ++i){
