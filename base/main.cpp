@@ -45,6 +45,16 @@ public:
     }
 };
 
+class Barette : public osg::PositionAttitudeTransform{
+public:
+	Barette(float _angle);
+	float angle;
+};
+
+Barette::Barette(float _angle){
+	angle = _angle;
+}
+
 float anglePiedG = 0.0;
 
 class WalkPiedG : public osg::NodeCallback
@@ -107,16 +117,20 @@ public:
     }
 };
 
-class voitures : public osg::NodeCallback
+class voituresCallback : public osg::NodeCallback
 {
 public:
     virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
     {
-		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
+		Barette* pos = (Barette*)n;
 
+		float angle = pos->angle;
+		pos->setPosition(osg::Vec3(pos->getPosition().x()+(cos(angle)/10), pos->getPosition().y()+(sin(angle)/10), pos->getPosition().z()));
 
-		osg::Quat attitude = pos->getAttitude();
-		pos->setPosition(osg::Vec3(pos->getPosition().x()+attitude.x(), pos->getPosition().y()+attitude.y(), pos->getPosition().z()));
+		if(pos->getPosition().x() < 0 or pos->getPosition().x() > fieldX or pos->getPosition().y() < 0 or pos->getPosition().y() > fieldY){
+			if(angle > 0) angle -= 180;
+			else angle += 180;
+		}
 
     }
 };
@@ -336,13 +350,13 @@ osg::ref_ptr<osg::Group> creation_rams(int nb_rams, float taillex, float tailley
 		int randY = rand()%(int)tailley;
 		angle = rand()%360;
 
-        osg::ref_ptr<osg::PositionAttitudeTransform> tsRam = new osg::PositionAttitudeTransform();
+        osg::ref_ptr<Barette> tsRam = new Barette(angle);
 
         tsRam->setScale(osg::Vec3(100.0, 100.0, 100.0));
         tsRam->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
         tsRam->setPosition(osg::Vec3(randX, randY, 0.0));
 
-        tsRam->setUpdateCallback(new voitures);
+        tsRam->setUpdateCallback(new voituresCallback);
 
         tsRam->addChild(ram);
 
