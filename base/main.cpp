@@ -27,8 +27,8 @@ osg::ref_ptr<osg::Geode> geodeSol;
 
 osg::ref_ptr<osgGA::DriveManipulator> manip;
 
-float fieldX = 100.0;
-float fieldY = 100.0;
+float fieldX = 1000.0;
+float fieldY = 1000.0;
 
 class RefreshSpeed : public osg::NodeCallback
 {
@@ -188,7 +188,7 @@ osg::ref_ptr<osg::Group> creation_lampadaires(int nb_lampadaires, float taillex,
     //osg::ref_ptr<osg::Node> light = osg::LightSource();
 
     osg::ref_ptr<osg::Group> lampadaires = new osg::Group;
-    for(unsigned int i=0; i<= nb_lampadaires;  ++i){
+    for(unsigned int i=0; i<= nb_lampadaires; ++i){
         int randX = rand()%(int)taillex;
 		int randY = rand()%(int)tailley;
 
@@ -209,7 +209,7 @@ osg::ref_ptr<osg::Group> creation_lampadaires(int nb_lampadaires, float taillex,
 }
 
 void recursiveExtremite(int& x, int& y, const float& tx, const float& ty){
-	if( x < 0 or x > tx or y < 0 or y > ty){
+	if( x < 0 or x > tx xor y < 0 or y > ty){
 		x = rand()%(int)tx;
 		y = rand()%(int)ty;
 
@@ -246,18 +246,19 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
 
 		osg::ref_ptr<osg::PositionAttitudeTransform> theTouche = new osg::PositionAttitudeTransform();
 
+		theTouche->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
 		theTouche->addChild(tsTouche);
 		theTouche->addChild(tsFeetD);
 		theTouche->addChild(tsFeetG);
 
-		theTouche->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+		
 
 		//recursiveExtremite(randX, randY, taillex, tailley);
 
-		//float tempOne = randX+(taillex/2);
-		//float tempTwo = randY-(tailley/2);
+		float tempOne = randX;
+		float tempTwo = randY;
 
-		//theTouche->setPosition(osg::Vec3(tempOne, tempTwo, -1.0));
+		theTouche->setPosition(osg::Vec3(tempOne, tempTwo, -1.0));
 
 		touches->addChild(theTouche);
     }
@@ -364,7 +365,7 @@ int main(void){
 	CreateSol();
 	scene->addChild(geodeSol);
 	scene->addChild(creation_troupeau_chikoiseau(50, fieldX, fieldY));
-    //scene->addChild(creation_troupeau_touches(15, fieldX, fieldY));
+    scene->addChild(creation_troupeau_touches(15, fieldX, fieldY));
     scene->addChild(creation_lampadaires(50, fieldX, fieldY));
     scene->addChild(creation_procs(50, fieldX, fieldY));
 	viewer.setSceneData(root);
