@@ -452,7 +452,7 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
 
 
 
-osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley){
+osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley, std::string filename){
 
 	osg::Sphere* corpsChikoiseau = new osg::Sphere(osg::Vec3(0.0,0.0,5.0), 1.0);
 	osg::ShapeDrawable* shapeDrawable = new osg::ShapeDrawable(corpsChikoiseau);
@@ -465,60 +465,76 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 
 	// create a texture
 	// load image for texture
-    std::string source[2] = {"remy.jpg", "raffin.jpg"};
+    /*int tabSize = 2;
+    std::string source[tabSize] = {"raffin.jpg", "remy.jpg"};
+    osg::ref_ptr<osg::Image> tabImage[tabSize];
+    for(unsigned int i = 0; i < tabSize; ++i){
+        tabImage[i] = osgDB::readImageFile(source[i]);
+        std::cerr << source[i] << std::endl;
+    }*/
+
+    osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
+    texture->setDataVariance(osg::Object::DYNAMIC);
+    texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
+    texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+    texture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
+    texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
+
+    osg::ref_ptr<osg::Image> image = osgDB::readImageFile(filename);
+    texture->setImage(image);
 
 	osg::Node* aileD = osgDB::readNodeFile("wingD.obj");
 	osg::Node* aileG = osgDB::readNodeFile("wingG.obj");
 
 	osg::Group* troupeau = new osg::Group;
 	for(unsigned int i = 0; i < nb_chikoiseau; ++i){
-        std::cout << source[rand()%(int)2] << std::endl;
-        osg::Image *image = osgDB::readImageFile(source[rand()%(int)2]);
-
-    	osg::Texture2D *texture = new osg::Texture2D;
-    	texture->setDataVariance(osg::Object::DYNAMIC);
-    	texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
-    	texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
-    	texture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
-    	texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
-    	texture->setImage(image);
-        //assign the material and texture to the sphere
+        //osg::ref_ptr<osg::Image> image = osgDB::readImageFile(tete);
         osg::StateSet *sphereStateSet = geode->getOrCreateStateSet();
         sphereStateSet->ref();
     	sphereStateSet->setAttribute(material);
-    	sphereStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
+        sphereStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
+
 		int randX = rand()%(int)taillex;
 		int randY = rand()%(int)tailley;
 		osg::PositionAttitudeTransform* transformChikoiseau = new osg::PositionAttitudeTransform();
 		transformChikoiseau->setPosition(osg::Vec3(randX, randY, 1.0));
+
 		float angle = rand()%360;
 		transformChikoiseau->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
 		transformChikoiseau->addChild(geode);
-		osg::PositionAttitudeTransform* transformAileG = new osg::PositionAttitudeTransform();
-		transformAileG->setPosition(osg::Vec3(randX, randY, 6.0));
-		transformAileG->setAttitude(osg::Quat(osg::DegreesToRadians(angle+90), osg::Vec3(0.0, 0.0, 1.0)));
-		osg::PositionAttitudeTransform* transformAileD = new osg::PositionAttitudeTransform();
-		transformAileD->setAttitude(osg::Quat(osg::DegreesToRadians(angle+90), osg::Vec3(0.0, 0.0, 1.0)));
-		transformAileD->setPosition(osg::Vec3(randX, randY, 6.0));
 
-		transformAileG->setScale(osg::Vec3(0.5,0.5,0.5));
-		transformAileD->setScale(osg::Vec3(0.5,0.5,0.5));
+		osg::PositionAttitudeTransform* transformAileG = new osg::PositionAttitudeTransform();
+        osg::PositionAttitudeTransform* transformAileD = new osg::PositionAttitudeTransform();
+
+		transformAileG->setPosition(osg::Vec3(randX, randY, 6.0));
+        transformAileD->setPosition(osg::Vec3(randX, randY, 6.0));
+
+		transformAileG->setAttitude(osg::Quat(osg::DegreesToRadians(angle+90), osg::Vec3(0.0, 0.0, 1.0)));
+		transformAileD->setAttitude(osg::Quat(osg::DegreesToRadians(angle+90), osg::Vec3(0.0, 0.0, 1.0)));
+
+        transformAileG->setScale(osg::Vec3(0.5,0.5,0.5));
+        transformAileD->setScale(osg::Vec3(0.5,0.5,0.5));
 
 		osg::PositionAttitudeTransform* Chikoiseau = new osg::PositionAttitudeTransform();
 		osg::PositionAttitudeTransform* aileDRotate = new osg::PositionAttitudeTransform();
 		osg::PositionAttitudeTransform* aileGRotate = new osg::PositionAttitudeTransform();
+
 		aileDRotate->addChild(aileG);
 		aileGRotate->addChild(aileD);
+
 	    aileDRotate->setUpdateCallback(new FlapFlapD);
 		aileGRotate->setUpdateCallback(new FlapFlapG);
+
 		transformAileG->addChild(aileGRotate);
 		transformAileD->addChild(aileDRotate);
+
 		Chikoiseau->addChild(transformAileG);
 		Chikoiseau->addChild(transformAileD);
 		Chikoiseau->addChild(transformChikoiseau);
 		//Chikoiseau->setUpdateCallback(new MovementChikoiseau);
 
 		troupeau->addChild(Chikoiseau);
+
 	}
 	return troupeau;
 }
@@ -638,7 +654,8 @@ int main(void){
     //Creationfeet();
     //CreationCD();
 	scene->addChild(geodeSol);
-	scene->addChild(creation_troupeau_chikoiseau(100, fieldX, fieldY));
+	scene->addChild(creation_troupeau_chikoiseau(100, fieldX, fieldY,"remy.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(100, fieldX, fieldY,"raffin.jpg"));
     scene->addChild(creation_troupeau_touches(50, fieldX, fieldY));
     scene->addChild(creation_panneaux(300, fieldX, fieldY));
     scene->addChild(creation_lampadaires(50, fieldX, fieldY));
