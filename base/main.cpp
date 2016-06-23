@@ -45,6 +45,16 @@ public:
     }
 };
 
+class Barette : public osg::PositionAttitudeTransform{
+public:
+	Barette(float _angle);
+	float angle;
+};
+
+Barette::Barette(float _angle){
+	angle = _angle;
+}
+
 float anglePiedG = 0.0;
 
 class WalkPiedG : public osg::NodeCallback
@@ -107,16 +117,20 @@ public:
     }
 };
 
-class voitures : public osg::NodeCallback
+class voituresCallback : public osg::NodeCallback
 {
 public:
     virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
     {
-		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
+		Barette* pos = (Barette*)n;
 
+		float angle = pos->angle;
+		pos->setPosition(osg::Vec3(pos->getPosition().x()+(cos(angle)/10), pos->getPosition().y()+(sin(angle)/10), pos->getPosition().z()));
 
-		osg::Quat attitude = pos->getAttitude();
-		pos->setPosition(osg::Vec3(pos->getPosition().x()+attitude.x(), pos->getPosition().y()+attitude.y(), pos->getPosition().z()));
+		if(pos->getPosition().x() < 0 or pos->getPosition().x() > fieldX or pos->getPosition().y() < 0 or pos->getPosition().y() > fieldY){
+			if(angle > 0) angle -= 180;
+			else angle += 180;
+		}
 
     }
 };
@@ -336,13 +350,13 @@ osg::ref_ptr<osg::Group> creation_rams(int nb_rams, float taillex, float tailley
 		int randY = rand()%(int)tailley;
 		angle = rand()%360;
 
-        osg::ref_ptr<osg::PositionAttitudeTransform> tsRam = new osg::PositionAttitudeTransform();
+        osg::ref_ptr<Barette> tsRam = new Barette(angle);
 
         tsRam->setScale(osg::Vec3(100.0, 100.0, 100.0));
         tsRam->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
         tsRam->setPosition(osg::Vec3(randX, randY, 0.0));
 
-        tsRam->setUpdateCallback(new voitures);
+        tsRam->setUpdateCallback(new voituresCallback);
 
         tsRam->addChild(ram);
 
@@ -508,6 +522,53 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 	return troupeau;
 }
 
+osg::Group* creation_panneaux(int nb_panneaux, float taillex, float tailley){
+
+	osg::Box* shapePanneau = new osg::Box(osg::Vec3(0.0,0.0,7.0), 0.0, 2.0, 2.0);
+	osg::ShapeDrawable* shapeDrawable = new osg::ShapeDrawable(shapePanneau);
+	osg::Geode* geode = new osg::Geode();
+	geode->addDrawable(shapeDrawable);
+
+	// create a simple material
+	osg::Material *material = new osg::Material();
+	material->setEmission(osg::Material::FRONT, osg::Vec4(0.8, 0.8, 0.8, 1.0));
+
+	// create a texture
+	// load image for texture
+	osg::Image *image = osgDB::readImageFile("raffin.jpg");
+	if (!image) {
+		std::cout << "Couldn't load texture." << std::endl;
+		return NULL;
+	}
+	osg::Texture2D *texture = new osg::Texture2D;
+	texture->setDataVariance(osg::Object::DYNAMIC);
+	texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
+	texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+	texture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
+	texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
+	texture->setImage(image);
+    //assign the material and texture to the sphere
+    osg::StateSet *boxStateSet = geode->getOrCreateStateSet();
+    boxStateSet->ref();
+	boxStateSet->setAttribute(material);
+	boxStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
+
+	osg::Group* troupeau = new osg::Group;
+	for(unsigned int i = 0; i < nb_panneaux; ++i){
+		int randX = rand()%(int)taillex;
+		int randY = rand()%(int)tailley;
+
+		osg::PositionAttitudeTransform* transformPanneau = new osg::PositionAttitudeTransform();
+		transformPanneau->setPosition(osg::Vec3(randX, randY, 1.0));
+		float angle = rand()%360;
+		transformPanneau->setAttitude(osg::Quat(osg::DegreesToRadians(0.0), osg::Vec3(1.0, 0.0, 0.0), osg::DegreesToRadians(50.0), osg::Vec3(0.0, 1.0, 0.0), osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+		transformPanneau->addChild(geode);
+
+		troupeau->addChild(transformPanneau);
+	}
+	return troupeau;
+}
+
 void CreationCD(){
     osg::ref_ptr<osg::PositionAttitudeTransform> transformCD;
     osg::ref_ptr<osg::Node> CD;
@@ -580,6 +641,7 @@ int main(void){
 	scene->addChild(geodeSol);
 	scene->addChild(creation_troupeau_chikoiseau(50, fieldX, fieldY));
     scene->addChild(creation_troupeau_touches(50, fieldX, fieldY));
+    scene->addChild(creation_panneaux(500, fieldX, fieldY));
     scene->addChild(creation_lampadaires(50, fieldX, fieldY));
     scene->addChild(creation_procs(50, fieldX, fieldY));
     scene->addChild(creation_condens(50, fieldX, fieldY));
