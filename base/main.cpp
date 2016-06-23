@@ -158,13 +158,63 @@ void CreateSol(){
 	geodeSol->addDrawable(quadSol);
 }
 
+osg::ref_ptr<osg::Group> creation_procs(int nb_procs, float taillex, float tailley){
+    osg::ref_ptr<osg::Node> proc = osgDB::readNodeFile("proc.3ds");
+    //osg::ref_ptr<osg::Node> light = osg::LightSource();
+
+    osg::ref_ptr<osg::Group> procs = new osg::Group;
+    for(unsigned int i=0; i<= nb_procs;  ++i){
+        int randX = rand()%(int)taillex;
+		int randY = rand()%(int)tailley;
+
+        osg::ref_ptr<osg::PositionAttitudeTransform> tsProc = new osg::PositionAttitudeTransform();
+
+        tsProc->setScale(osg::Vec3(1.0, 1.0, 1.0));
+        tsProc->setPosition(osg::Vec3(randX, randY, 0.0));
+
+        tsProc->addChild(proc);
+
+		osg::ref_ptr<osg::PositionAttitudeTransform> theProc = new osg::PositionAttitudeTransform();
+
+		theProc->addChild(tsProc);
+
+		procs->addChild(theProc);
+    }
+    return procs;
+}
+
+osg::ref_ptr<osg::Group> creation_lampadaires(int nb_lampadaires, float taillex, float tailley){
+    osg::ref_ptr<osg::Node> lampadaire = osgDB::readNodeFile("led2.3ds");
+    //osg::ref_ptr<osg::Node> light = osg::LightSource();
+
+    osg::ref_ptr<osg::Group> lampadaires = new osg::Group;
+    for(unsigned int i=0; i<= nb_lampadaires;  ++i){
+        int randX = rand()%(int)taillex;
+		int randY = rand()%(int)tailley;
+
+        osg::ref_ptr<osg::PositionAttitudeTransform> tsLampadaire = new osg::PositionAttitudeTransform();
+
+        tsLampadaire->setScale(osg::Vec3(1.0, 1.0, 1.0));
+        tsLampadaire->setPosition(osg::Vec3(randX, randY, 0.0));
+
+        tsLampadaire->addChild(lampadaire);
+
+		osg::ref_ptr<osg::PositionAttitudeTransform> theLampadaire = new osg::PositionAttitudeTransform();
+
+		theLampadaire->addChild(tsLampadaire);
+
+		lampadaires->addChild(theLampadaire);
+    }
+    return lampadaires;
+}
+
 void recursiveExtremite(int& x, int& y, const float& tx, const float& ty){
 	if( x < 0 or x > tx or y < 0 or y > ty){
 		x = rand()%(int)tx;
 		y = rand()%(int)ty;
 
 		recursiveExtremite(x, y, tx, ty);
-	}	
+	}
 }
 
 osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex, float tailley){
@@ -315,6 +365,9 @@ int main(void){
 	scene->addChild(geodeSol);
 	scene->addChild(creation_troupeau_chikoiseau(50, fieldX, fieldY));
     //scene->addChild(creation_troupeau_touches(15, fieldX, fieldY));
+    scene->addChild(creation_lampadaires(50, fieldX, fieldY));
+    scene->addChild(creation_procs(50, fieldX, fieldY));
+	viewer.setSceneData(root);
 
 	osg::ref_ptr<GestionEvenements> gestionnaire = new GestionEvenements();
 	viewer.addEventHandler(gestionnaire.get());
