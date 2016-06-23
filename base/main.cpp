@@ -42,6 +42,48 @@ public:
     }
 };
 
+float angleAilesG = 0.0;
+
+class FlapFlapG : public osg::NodeCallback
+{
+public:
+    virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
+    {
+		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
+		static bool monte = true;
+		if(monte){
+			angleAilesG += 0.08;
+			if(angleAilesG>50) monte = false;
+		}
+		if(!monte){
+			angleAilesG -= 0.08;
+			if(angleAilesG<-50) monte = true;
+		}
+		pos->setAttitude(osg::Quat(osg::DegreesToRadians(angleAilesG), osg::Vec3(0.0, 1.0, 0.0)));
+    }
+};
+
+float angleAilesD = 0.0;
+
+class FlapFlapD : public osg::NodeCallback
+{
+public:
+    virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
+    {
+		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
+		static bool monteD = true;
+		if(monteD){
+			angleAilesD -= 0.08;
+			if(angleAilesD<-50) monteD = false;
+		}
+		if(!monteD){
+			angleAilesD += 0.08;
+			if(angleAilesD>50) monteD = true;
+		}
+		pos->setAttitude(osg::Quat(osg::DegreesToRadians(angleAilesD), osg::Vec3(0.0, 1.0, 0.0)));
+    }
+};
+
 float angle = 0.0;
 
 class Rotation : public osg::NodeCallback
@@ -167,13 +209,20 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 
 		transformAileG->setScale(osg::Vec3(0.5,0.5,0.5));
 		transformAileD->setScale(osg::Vec3(0.5,0.5,0.5));
-		transformAileG->addChild(aileG);
-		transformAileD->addChild(aileD);
 
 		osg::PositionAttitudeTransform* Chikoiseau = new osg::PositionAttitudeTransform();
 
-		Chikoiseau->addChild(transformAileD);
+
+		osg::PositionAttitudeTransform* aileDRotate = new osg::PositionAttitudeTransform();
+		osg::PositionAttitudeTransform* aileGRotate = new osg::PositionAttitudeTransform();
+		aileDRotate->addChild(aileG);
+		aileGRotate->addChild(aileD);
+		aileDRotate->setUpdateCallback(new FlapFlapD);
+		aileGRotate->setUpdateCallback(new FlapFlapG);
+		transformAileG->addChild(aileGRotate);
+		transformAileD->addChild(aileDRotate);
 		Chikoiseau->addChild(transformAileG);
+		Chikoiseau->addChild(transformAileD);
 		Chikoiseau->addChild(transformChikoiseau);
 
 		troupeau->addChild(Chikoiseau);
