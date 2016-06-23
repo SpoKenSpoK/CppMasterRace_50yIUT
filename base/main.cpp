@@ -27,6 +27,8 @@ osg::ref_ptr<osg::Geode> geodeSol;
 
 osg::ref_ptr<osgGA::DriveManipulator> manip;
 
+float fieldX = 100.0;
+float fieldY = 100.0;
 
 class RefreshSpeed : public osg::NodeCallback
 {
@@ -144,8 +146,8 @@ void CreateSol(){
 
 	quadSol = osg::createTexturedQuadGeometry(
 	osg::Vec3(0.0, 0.0, 0.0), // Coin de départ
-	osg::Vec3(1000.0, 0.0, 0.0),  // largeur
-	osg::Vec3(0.0, 1000.0, 0.0),  // hauteur
+	osg::Vec3(fieldX, 0.0, 0.0),  // largeur
+	osg::Vec3(0.0, fieldY, 0.0),  // hauteur
 	0.0, 0.0, 30.0, 30.0); 		// Coordonnées de texture gauche/bas/droit/haut
 								// Si vous mettez 4.0 à la place de 1.0,
 								// la texture sera répétée 4 fois
@@ -154,6 +156,15 @@ void CreateSol(){
 
 	geodeSol = new osg::Geode;
 	geodeSol->addDrawable(quadSol);
+}
+
+void recursiveExtremite(int& x, int& y, const float& tx, const float& ty){
+	if( x < 0 or x > tx or y < 0 or y > ty){
+		x = rand()%(int)tx;
+		y = rand()%(int)ty;
+
+		recursiveExtremite(x, y, tx, ty);
+	}	
 }
 
 osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex, float tailley){
@@ -172,15 +183,12 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
         osg::ref_ptr<osg::PositionAttitudeTransform> tsTouche = new osg::PositionAttitudeTransform();
 
         tsTouche->setScale(osg::Vec3(0.2, 0.2, 0.2));
-        tsTouche->setPosition(osg::Vec3(randX, randY, 3.5));
-        tsTouche->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
         tsFeetD->setScale(osg::Vec3(0.015, 0.015, 0.015));
-        tsFeetD->setPosition(osg::Vec3(randX-1.0, randY-0.6, 2.7));
-        tsFeetD->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
         tsFeetG->setScale(osg::Vec3(0.015, 0.015, 0.015));
-        tsFeetG->setPosition(osg::Vec3(randX+1.0, randY-0.6, 2.7));
-        tsFeetG->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
 
+        tsTouche->setPosition(osg::Vec3(randX, randY, 3.5));
+        tsFeetD->setPosition(osg::Vec3(randX-1.0, randY-0.6, 2.7));
+        tsFeetG->setPosition(osg::Vec3(randX+1.0, randY-0.6, 2.7));
 
         tsTouche->addChild(touche);
         tsFeetD->addChild(feetD);
@@ -192,10 +200,21 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
 		theTouche->addChild(tsFeetD);
 		theTouche->addChild(tsFeetG);
 
+		theTouche->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+
+		//recursiveExtremite(randX, randY, taillex, tailley);
+
+		//float tempOne = randX+(taillex/2);
+		//float tempTwo = randY-(tailley/2);
+
+		//theTouche->setPosition(osg::Vec3(tempOne, tempTwo, -1.0));
+
 		touches->addChild(theTouche);
     }
     return touches;
 }
+
+
 
 osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley){
 
@@ -253,7 +272,6 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 
 		osg::PositionAttitudeTransform* Chikoiseau = new osg::PositionAttitudeTransform();
 
-
 		osg::PositionAttitudeTransform* aileDRotate = new osg::PositionAttitudeTransform();
 		osg::PositionAttitudeTransform* aileGRotate = new osg::PositionAttitudeTransform();
 		aileDRotate->addChild(aileG);
@@ -269,23 +287,6 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 		troupeau->addChild(Chikoiseau);
 	}
 	return troupeau;
-}
-
-void Creationfeet(){
-
-	feet = osgDB::readNodeFile("feet.3ds");
-
-	transformFeet = new osg::PositionAttitudeTransform;
-	transformFeet->setUpdateCallback(new Rotation);
-	transformFeet->setPosition(osg::Vec3(0,0,0));
-	//transformFeet->setScale(osg::Vec3(0.01,0.01,0.01));
-	//transformFeet->setScale(osg::Vec3(1000,1000,1000));
-	transformFeet->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
-	transformFeet->addChild(feet);
-
-    transformFeet->setUpdateCallback(new RefreshSpeed);
-
-	scene->addChild(transformFeet);
 }
 
 int main(void){
@@ -311,11 +312,9 @@ int main(void){
 
 	root->addChild(scene);
 	CreateSol();
-	Creationfeet();
 	scene->addChild(geodeSol);
-	scene->addChild(creation_troupeau_chikoiseau(50, 1000, 1000));
-    scene->addChild(creation_troupeau_touches(50, 1000, 1000));
-	viewer.setSceneData(root);
+	scene->addChild(creation_troupeau_chikoiseau(50, fieldX, fieldY));
+    //scene->addChild(creation_troupeau_touches(15, fieldX, fieldY));
 
 	osg::ref_ptr<GestionEvenements> gestionnaire = new GestionEvenements();
 	viewer.addEventHandler(gestionnaire.get());
