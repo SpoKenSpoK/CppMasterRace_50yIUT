@@ -45,6 +45,17 @@ public:
     }
 };
 
+class MovementChikoiseau : public osg::NodeCallback
+{
+public:
+    virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
+    {
+		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
+		pos->setPosition(osg::Vec3(pos->getPosition().x()+0.01, pos->getPosition().y(), pos->getPosition().z()));
+
+    }
+};
+
 float angleAilesG = 0.0;
 
 class FlapFlapG : public osg::NodeCallback
@@ -52,6 +63,7 @@ class FlapFlapG : public osg::NodeCallback
 public:
     virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
     {
+    	std::cout << "tamer" << std::endl;
 		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
 		static bool monte = true;
 		if(monte){
@@ -357,7 +369,7 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 		transformAileD->setScale(osg::Vec3(0.5,0.5,0.5));
 
 		osg::PositionAttitudeTransform* Chikoiseau = new osg::PositionAttitudeTransform();
-
+		Chikoiseau->setUpdateCallback(new MovementChikoiseau);
 		osg::PositionAttitudeTransform* aileDRotate = new osg::PositionAttitudeTransform();
 		osg::PositionAttitudeTransform* aileGRotate = new osg::PositionAttitudeTransform();
 		aileDRotate->addChild(aileG);
