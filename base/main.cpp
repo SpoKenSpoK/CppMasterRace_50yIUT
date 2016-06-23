@@ -701,18 +701,18 @@ int main(void){
     //Creationfeet();
     CreationCD();
 	scene->addChild(geodeSol);
-	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"remy.jpg"));
-	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"raffin.jpg"));
-	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"thon.jpeg"));
-	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"triboulet.jpg"));
-	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"tibo.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"remy.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"raffin.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"thon.jpeg"));
+	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"triboulet.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"tibo.jpg"));
     scene->addChild(creation_troupeau_touches(100, fieldX, fieldY));
     scene->addChild(creation_panneaux(200, fieldX, fieldY, "stravingo.jpeg"));
     scene->addChild(creation_panneaux(200, fieldX, fieldY, "doge.jpeg"));
     scene->addChild(creation_panneaux(200, fieldX, fieldY, "nvidia.png"));
     scene->addChild(creation_lampadaires(100, fieldX, fieldY));
     scene->addChild(creation_procs(100, fieldX, fieldY));
-    scene->addChild(creation_condens(100, fieldX, fieldY));
+    scene->addChild(creation_condens(45, fieldX, fieldY));
     scene->addChild(creation_rams(400, fieldX, fieldY));
 	viewer.setSceneData(root);
 
