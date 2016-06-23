@@ -12,6 +12,8 @@
 #include <osgSim/DOFTransform>
 #include <osg/AnimationPath>
 #include <string>
+#include <SFML/Audio.hpp>
+#include <SFML/System.hpp>
 #include "renderToTexture.h"
 //#include "fpsCamera.h"
 
@@ -134,6 +136,19 @@ public:
 			else angle += 180;
 		}
 
+    }
+};
+
+float ventiradAngle = 0.0;
+
+class ventiradCallback : public osg::NodeCallback
+{
+public:
+    virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
+    {
+    	ventiradAngle += 5.0;
+    	osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
+		pos->setAttitude(osg::Quat(osg::DegreesToRadians(ventiradAngle), osg::Vec3(1.0, 0.0, 0.0)));
     }
 };
 
@@ -372,33 +387,55 @@ osg::ref_ptr<osg::Group> creation_rams(int nb_rams, float taillex, float tailley
     return rams;
 }
 
+class ChercheNoeud : public osg::NodeVisitor
+{
+public:
+	ChercheNoeud ( const std::string& name )
+	: osg::NodeVisitor( osg::NodeVisitor::TRAVERSE_ALL_CHILDREN ), _name( name ) {}
+	// Méthode appelée pour chaque nœud du graphe. Si son nom correspond à celui passé
+	// en paramètre au constructeur, on sauve l'adresse du nœud dans _node
+	virtual void apply( osg::Node& node )
+	{
+	if (node.getName() == _name)
+	_node = &node;
+	traverse( node ); // On continue le parcours du graphe
+	}
+	osg::Node* getNode() { return _node.get(); }
+protected:
+	std::string _name;
+	osg::ref_ptr<osg::Node> _node;
+};
+
+ChercheNoeud rechercheBlade("Scythe_Blade");
+
 osg::ref_ptr<osg::Group> creation_ventirads(int nb_ventirads, float taillex, float tailley){
     osg::ref_ptr<osg::Node> ventirad = osgDB::readNodeFile("ventirad.obj");
 
     osg::ref_ptr<osg::Group> ventirads = new osg::Group;
     for(unsigned int i=0; i<= nb_ventirads; ++i){
         int randX = rand()%(int)taillex;
+        /*if(randX < taillex/2) randX -= taillex/2;
+        else randX += taillex/2;*/
 		int randY = rand()%(int)tailley;
+        /*if(randY < tailley/2) randY -= tailley/2;
+        else randY += tailley/2;*/
 		angle = rand()%360;
 
-        osg::ref_ptr<Barette> tsVentirad = new Barette(angle);
+        osg::ref_ptr<osg::PositionAttitudeTransform> tsVentirad = new osg::PositionAttitudeTransform();
 
-        tsVentirad->setScale(osg::Vec3(100.0, 100.0, 100.0));
-        tsVentirad->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+        tsVentirad->setScale(osg::Vec3(0.1, 0.1, 0.1));
+        tsVentirad->setAttitude(osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(1.0, 0.0, 0.0), osg::DegreesToRadians(0.0), osg::Vec3(0.0, 1.0, 0.0), osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
         tsVentirad->setPosition(osg::Vec3(randX, randY, 0.0));
 
-        tsVentirad->setUpdateCallback(new ventiradCallback);
+        rechercheBlade.getNode()->setUpdateCallback(new ventiradCallback);
 
         tsVentirad->addChild(ventirad);
 
-		osg::ref_ptr<osg::PositionAttitudeTransform> theVentirad = new osg::PositionAttitudeTransform();
-        theVentirad->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
+        tsVentirad->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
 
-		theVentirad->addChild(tsVentirad);
-
-		vendirads->addChild(theVentirad);
+		ventirads->addChild(tsVentirad);
     }
-    return rams;
+    return ventirads;
 }
 
 osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex, float tailley){
@@ -479,8 +516,6 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
     return touches;
 }
 
-
-
 osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley, std::string filename){
 
 	osg::Sphere* corpsChikoiseau = new osg::Sphere(osg::Vec3(0.0,0.0,5.0), 1.0);
@@ -491,16 +526,6 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 	// create a simple material
 	osg::Material *material = new osg::Material();
 	material->setEmission(osg::Material::FRONT, osg::Vec4(0.8, 0.8, 0.8, 1.0));
-
-	// create a texture
-	// load image for texture
-    /*int tabSize = 2;
-    std::string source[tabSize] = {"raffin.jpg", "remy.jpg"};
-    osg::ref_ptr<osg::Image> tabImage[tabSize];
-    for(unsigned int i = 0; i < tabSize; ++i){
-        tabImage[i] = osgDB::readImageFile(source[i]);
-        std::cerr << source[i] << std::endl;
-    }*/
 
     osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
     texture->setDataVariance(osg::Object::DYNAMIC);
@@ -680,6 +705,7 @@ int main(void){
 	scene->addChild(creation_troupeau_chikoiseau(100, fieldX, fieldY,"raffin.jpg"));
     scene->addChild(creation_troupeau_touches(50, fieldX, fieldY));
     scene->addChild(creation_panneaux(300, fieldX, fieldY));
+    //scene->addChild(creation_ventirads(10, fieldX, fieldY));
     scene->addChild(creation_lampadaires(50, fieldX, fieldY));
     scene->addChild(creation_procs(50, fieldX, fieldY));
     scene->addChild(creation_condens(50, fieldX, fieldY));
@@ -689,6 +715,15 @@ int main(void){
     /*patSpeed = new osg::PositionAttitudeTransform;
     patSpeed->setUpdateCallback(new RefreshSpeed);
     scene->addChild(patSpeed);*/
+
+    sf::SoundBuffer buffer;
+    if (!buffer.loadFromFile("PIGS_WORLD_by_ANTICEPTIK_KAOTEK.ogg"))
+        return -1;
+
+    sf::Sound sound;
+    sound.setBuffer(buffer);
+    sound.play();
+    sound.setLoop(true);
 
 	osg::ref_ptr<GestionEvenements> gestionnaire = new GestionEvenements();
 	viewer.addEventHandler(gestionnaire.get());
