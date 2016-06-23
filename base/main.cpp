@@ -45,13 +45,36 @@ public:
     }
 };
 
+osg::Vec2 directionChikoiseau = osg::Vec2(0.0, 0.0);
+float chikoiseauTimer = 0.0;
+
 class MovementChikoiseau : public osg::NodeCallback
 {
 public:
     virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
     {
+    	if (chikoiseauTimer > 20000.0){
+    		directionChikoiseau.x() = (float((rand()%20)-10)/100.0);
+    		directionChikoiseau.y() = (float((rand()%20)-10)/100.0);
+    		chikoiseauTimer = 0.0;
+    	}
+    	chikoiseauTimer += 1.0;
 		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
-		pos->setPosition(osg::Vec3(pos->getPosition().x()+0.01, pos->getPosition().y(), pos->getPosition().z()));
+		pos->setPosition(osg::Vec3(pos->getPosition().x()+directionChikoiseau.x(), pos->getPosition().y()+directionChikoiseau.y(), pos->getPosition().z()));
+
+    }
+};
+
+class voitures : public osg::NodeCallback
+{
+public:
+    virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
+    {
+		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
+
+
+		osg::Quat attitude = pos->getAttitude();
+		pos->setPosition(osg::Vec3(pos->getPosition().x()+attitude.x(), pos->getPosition().y()+attitude.y(), pos->getPosition().z()));
 
     }
 };
@@ -63,7 +86,7 @@ class FlapFlapG : public osg::NodeCallback
 public:
     virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
     {
-    	std::cout << "tamer" << std::endl;
+    	std::cout << "test" << std::endl;
 		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
 		static bool monte = true;
 		if(monte){
@@ -263,6 +286,35 @@ osg::ref_ptr<osg::Group> creation_lampadaires(int nb_lampadaires, float taillex,
     return lampadaires;
 }
 
+osg::ref_ptr<osg::Group> creation_rams(int nb_rams, float taillex, float tailley){
+    osg::ref_ptr<osg::Node> ram = osgDB::readNodeFile("ram.3ds");
+
+    osg::ref_ptr<osg::Group> rams = new osg::Group;
+    for(unsigned int i=0; i<= nb_rams; ++i){
+        int randX = rand()%(int)taillex;
+		int randY = rand()%(int)tailley;
+		angle = rand()%360;
+
+        osg::ref_ptr<osg::PositionAttitudeTransform> tsRam = new osg::PositionAttitudeTransform();
+
+        tsRam->setScale(osg::Vec3(100.0, 100.0, 100.0));
+        tsRam->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+        tsRam->setPosition(osg::Vec3(randX, randY, 0.0));
+
+        tsRam->setUpdateCallback(new voitures);
+
+        tsRam->addChild(ram);
+
+		osg::ref_ptr<osg::PositionAttitudeTransform> theRam = new osg::PositionAttitudeTransform();
+        theRam->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
+
+		theRam->addChild(tsRam);
+
+		rams->addChild(theRam);
+    }
+    return rams;
+}
+
 osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex, float tailley){
     osg::ref_ptr<osg::Node> feetD = osgDB::readNodeFile("feetD.obj");
     osg::ref_ptr<osg::Node> feetG = osgDB::readNodeFile("feetG.obj");
@@ -357,7 +409,6 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 		float angle = rand()%360;
 		transformChikoiseau->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
 		transformChikoiseau->addChild(geode);
-		//transformChikoiseau->setUpdateCallback(new Deplacement);
 		osg::PositionAttitudeTransform* transformAileG = new osg::PositionAttitudeTransform();
 		transformAileG->setPosition(osg::Vec3(randX, randY, 6.0));
 		transformAileG->setAttitude(osg::Quat(osg::DegreesToRadians(angle+90), osg::Vec3(0.0, 0.0, 1.0)));
@@ -369,7 +420,6 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 		transformAileD->setScale(osg::Vec3(0.5,0.5,0.5));
 
 		osg::PositionAttitudeTransform* Chikoiseau = new osg::PositionAttitudeTransform();
-		Chikoiseau->setUpdateCallback(new MovementChikoiseau);
 		osg::PositionAttitudeTransform* aileDRotate = new osg::PositionAttitudeTransform();
 		osg::PositionAttitudeTransform* aileGRotate = new osg::PositionAttitudeTransform();
 		aileDRotate->addChild(aileG);
@@ -381,6 +431,7 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 		Chikoiseau->addChild(transformAileG);
 		Chikoiseau->addChild(transformAileD);
 		Chikoiseau->addChild(transformChikoiseau);
+		//Chikoiseau->setUpdateCallback(new MovementChikoiseau);	
 
 		troupeau->addChild(Chikoiseau);
 	}
@@ -425,7 +476,7 @@ void Creationfeet(){
  	transformFeet->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
  	transformFeet->addChild(feet);
 
-     transformFeet->setUpdateCallback(new RefreshSpeed);
+    transformFeet->setUpdateCallback(new RefreshSpeed);
 
  	scene->addChild(transformFeet);
 }
@@ -454,7 +505,7 @@ int main(void){
 
 	root->addChild(scene);
 	CreateSol();
-    //Creationfeet();
+    Creationfeet();
     //CreationCD();
 	scene->addChild(geodeSol);
 	scene->addChild(creation_troupeau_chikoiseau(50, fieldX, fieldY));
@@ -462,6 +513,7 @@ int main(void){
     scene->addChild(creation_lampadaires(50, fieldX, fieldY));
     scene->addChild(creation_procs(50, fieldX, fieldY));
     scene->addChild(creation_condens(50, fieldX, fieldY));
+    scene->addChild(creation_rams(200, fieldX, fieldY));
 	viewer.setSceneData(root);
 
 	osg::ref_ptr<GestionEvenements> gestionnaire = new GestionEvenements();
