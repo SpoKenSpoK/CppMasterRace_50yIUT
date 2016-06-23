@@ -38,10 +38,52 @@ public:
     {
 		double vitesse = 0.0;
 		vitesse = manip->getVelocity();
-		if(vitesse < -5.0) vitesse += 1.0;
-        if(vitesse > 20.0) vitesse -= 1.0;
+		if(vitesse < -2.0) vitesse += 1.0;
+        if(vitesse > 10.0) vitesse -= 1.0;
         manip->setVelocity(vitesse);
         manip->setIntersectTraversalMask(0);
+    }
+};
+
+float anglePiedG = 0.0;
+
+class WalkPiedG : public osg::NodeCallback
+{
+public:
+    virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
+    {
+		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
+		static bool monte = true;
+		if(monte){
+			anglePiedG += 0.04;
+			if(anglePiedG>50) monte = false;
+		}
+		if(!monte){
+			anglePiedG -= 0.04;
+			if(anglePiedG<-50) monte = true;
+		}
+		pos->setAttitude(osg::Quat(osg::DegreesToRadians(anglePiedG), osg::Vec3(0.0, 0.0, 1.0)));
+    }
+};
+
+float anglePiedD = 0.0;
+
+class WalkPiedD : public osg::NodeCallback
+{
+public:
+    virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
+    {
+		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
+		static bool monte = true;
+		if(monte){
+			anglePiedD += 0.04;
+			if(anglePiedD>50) monte = false;
+		}
+		if(!monte){
+			anglePiedD -= 0.04;
+			if(anglePiedD<-50) monte = true;
+		}
+		pos->setAttitude(osg::Quat(osg::DegreesToRadians(anglePiedD), osg::Vec3(0.0, 0.0, 1.0)));
     }
 };
 
@@ -86,7 +128,6 @@ class FlapFlapG : public osg::NodeCallback
 public:
     virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
     {
-    	std::cout << "test" << std::endl;
 		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
 		static bool monte = true;
 		if(monte){
@@ -330,6 +371,9 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
         osg::ref_ptr<osg::PositionAttitudeTransform> tsFeetG = new osg::PositionAttitudeTransform();
         osg::ref_ptr<osg::PositionAttitudeTransform> tsTouche = new osg::PositionAttitudeTransform();
 
+        tsFeetD->setUpdateCallback(new WalkPiedD);
+		tsFeetG->setUpdateCallback(new WalkPiedG);
+
         tsTouche->setScale(osg::Vec3(0.2, 0.2, 0.2));
         tsFeetD->setScale(osg::Vec3(0.015, 0.015, 0.015));
         tsFeetG->setScale(osg::Vec3(0.015, 0.015, 0.015));
@@ -344,7 +388,7 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
 
 		osg::ref_ptr<osg::PositionAttitudeTransform> theTouche = new osg::PositionAttitudeTransform();
 
-		theTouche->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+		//theTouche->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
 		theTouche->addChild(tsTouche);
 		theTouche->addChild(tsFeetD);
 		theTouche->addChild(tsFeetG);
@@ -354,10 +398,54 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
         //Définition du mode de bouclage sur le chemin défini
         touchePath->setLoopMode(osg::AnimationPath::LOOP);
 
-        osg::AnimationPath::ControlPoint pZero(osg::Vec3(10, 10, 0));
-        osg::AnimationPath::ControlPoint pOne(osg::Vec3(20, 20, 0));
+        bool decrease = true;
+        int tailleTab = 10;
+        float xx = 0.0;
+        float yy;
+        float zz = 0.0;
 
-        //touchePath
+        osg::Vec3 position = theTouche->getPosition();
+
+        for(unsigned int i=0; i<=100; ++i){
+            osg::AnimationPath::ControlPoint p(osg::Vec3(xx, yy, zz));
+            yy-=1;
+
+            if((i%5)==0 && !decrease) decrease = true;
+            else if((i%5)==0 && decrease) decrease = false;
+
+            if(decrease) zz-=1;
+            else zz+=1;
+
+            touchePath->insert(0.2f*i, p);
+        }
+
+        /*osg::AnimationPath::ControlPoint p0(osg::Vec3(0, 0, 0));
+        osg::AnimationPath::ControlPoint p1(osg::Vec3(0, 5, 0));
+        osg::AnimationPath::ControlPoint p2(osg::Vec3(0, 10, 2));
+        osg::AnimationPath::ControlPoint p3(osg::Vec3(0, 15, 5));
+        osg::AnimationPath::ControlPoint p4(osg::Vec3(0, 20, 8));
+        osg::AnimationPath::ControlPoint p5(osg::Vec3(0, 25, 10));
+        osg::AnimationPath::ControlPoint p6(osg::Vec3(0, 30, 8));
+        osg::AnimationPath::ControlPoint p7(osg::Vec3(0, 35, 5));
+        osg::AnimationPath::ControlPoint p8(osg::Vec3(0, 40, 3));
+        osg::AnimationPath::ControlPoint p9(osg::Vec3(0, 45, 0));
+        osg::AnimationPath::ControlPoint p10(osg::Vec3(0, 50, 0));
+        */
+
+        /*touchePath->insert(0.0f, p0);
+        touchePath->insert(0.2f, p1);
+        touchePath->insert(0.6f, p2);
+        touchePath->insert(0.6f, p3);
+        touchePath->insert(1.0f, p4);
+        touchePath->insert(1.3f, p5);
+        touchePath->insert(1.5f, p6);
+        touchePath->insert(1.8f, p7);
+        touchePath->insert(2.0f, p8);
+        touchePath->insert(2.2f, p9);
+        touchePath->insert(2.4f, p10);*/
+
+        osg::ref_ptr<osg::AnimationPathCallback> apc = new osg::AnimationPathCallback(touchePath.get());
+        theTouche->setUpdateCallback(apc.get());
 
 		touches->addChild(theTouche);
     }
@@ -424,7 +512,7 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 		osg::PositionAttitudeTransform* aileGRotate = new osg::PositionAttitudeTransform();
 		aileDRotate->addChild(aileG);
 		aileGRotate->addChild(aileD);
-		aileDRotate->setUpdateCallback(new FlapFlapD);
+	    aileDRotate->setUpdateCallback(new FlapFlapD);
 		aileGRotate->setUpdateCallback(new FlapFlapG);
 		transformAileG->addChild(aileGRotate);
 		transformAileD->addChild(aileDRotate);
@@ -509,7 +597,7 @@ int main(void){
     //CreationCD();
 	scene->addChild(geodeSol);
 	scene->addChild(creation_troupeau_chikoiseau(50, fieldX, fieldY));
-    scene->addChild(creation_troupeau_touches(15, fieldX, fieldY));
+    scene->addChild(creation_troupeau_touches(50, fieldX, fieldY));
     scene->addChild(creation_lampadaires(50, fieldX, fieldY));
     scene->addChild(creation_procs(50, fieldX, fieldY));
     scene->addChild(creation_condens(50, fieldX, fieldY));
