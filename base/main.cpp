@@ -55,14 +55,14 @@ public:
 		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
 		static bool monte = true;
 		if(monte){
-			anglePiedG += 0.04;
-			if(anglePiedG>50) monte = false;
+			anglePiedG -= 0.02;
+			if(anglePiedG<-50) monte = false;
 		}
 		if(!monte){
-			anglePiedG -= 0.04;
-			if(anglePiedG<-50) monte = true;
+			anglePiedG += 0.02;
+			if(anglePiedG>50) monte = true;
 		}
-		pos->setAttitude(osg::Quat(osg::DegreesToRadians(anglePiedG), osg::Vec3(0.0, 0.0, 1.0)));
+		pos->setAttitude(osg::Quat(osg::DegreesToRadians(anglePiedG), osg::Vec3(1.0, 0.0, 0.0)));
     }
 };
 
@@ -76,14 +76,14 @@ public:
 		osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
 		static bool monte = true;
 		if(monte){
-			anglePiedD += 0.04;
+			anglePiedD += 0.02;
 			if(anglePiedD>50) monte = false;
 		}
 		if(!monte){
-			anglePiedD -= 0.04;
+			anglePiedD -= 0.02;
 			if(anglePiedD<-50) monte = true;
 		}
-		pos->setAttitude(osg::Quat(osg::DegreesToRadians(anglePiedD), osg::Vec3(0.0, 0.0, 1.0)));
+		pos->setAttitude(osg::Quat(osg::DegreesToRadians(anglePiedD), osg::Vec3(1.0, 0.0, 0.0)));
     }
 };
 
@@ -367,6 +367,9 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
 		int randY = rand()%(int)tailley;
         float angle = rand()%360;
 
+        //int randX =  0;
+        //int randY = 500;
+
         osg::ref_ptr<osg::PositionAttitudeTransform> tsFeetD = new osg::PositionAttitudeTransform();
         osg::ref_ptr<osg::PositionAttitudeTransform> tsFeetG = new osg::PositionAttitudeTransform();
         osg::ref_ptr<osg::PositionAttitudeTransform> tsTouche = new osg::PositionAttitudeTransform();
@@ -389,6 +392,7 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
 		osg::ref_ptr<osg::PositionAttitudeTransform> theTouche = new osg::PositionAttitudeTransform();
 
 		//theTouche->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+        //theTouche->setPosition(osg::Vec3(randX, randY, -1.0));
 		theTouche->addChild(tsTouche);
 		theTouche->addChild(tsFeetD);
 		theTouche->addChild(tsFeetG);
@@ -396,53 +400,31 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
         //Path pour les touches
         osg::ref_ptr<osg::AnimationPath> touchePath = new osg::AnimationPath;
         //Définition du mode de bouclage sur le chemin défini
-        touchePath->setLoopMode(osg::AnimationPath::LOOP);
+        touchePath->setLoopMode(osg::AnimationPath::SWING);
 
-        bool decrease = true;
-        int tailleTab = 10;
-        float xx = 0.0;
-        float yy;
-        float zz = 0.0;
+        osg::AnimationPath::ControlPoint p0(osg::Vec3(0, 0, 0));
+        osg::AnimationPath::ControlPoint p1(osg::Vec3(0, 10, 0));
+        osg::AnimationPath::ControlPoint p2(osg::Vec3(0, 20, 3));
+        osg::AnimationPath::ControlPoint p3(osg::Vec3(0, 30, 6));
+        osg::AnimationPath::ControlPoint p4(osg::Vec3(0, 40, 9));
+        osg::AnimationPath::ControlPoint p5(osg::Vec3(0, 50, 12));
+        osg::AnimationPath::ControlPoint p6(osg::Vec3(0, 60, 9));
+        osg::AnimationPath::ControlPoint p7(osg::Vec3(0, 70, 6));
+        osg::AnimationPath::ControlPoint p8(osg::Vec3(0, 80, 3));
+        osg::AnimationPath::ControlPoint p9(osg::Vec3(0, 90, 0));
+        osg::AnimationPath::ControlPoint p10(osg::Vec3(0, 100, 0));
 
-        osg::Vec3 position = theTouche->getPosition();
-
-        for(unsigned int i=0; i<=100; ++i){
-            osg::AnimationPath::ControlPoint p(osg::Vec3(xx, yy, zz));
-            yy-=1;
-
-            if((i%5)==0 && !decrease) decrease = true;
-            else if((i%5)==0 && decrease) decrease = false;
-
-            if(decrease) zz-=1;
-            else zz+=1;
-
-            touchePath->insert(0.2f*i, p);
-        }
-
-        /*osg::AnimationPath::ControlPoint p0(osg::Vec3(0, 0, 0));
-        osg::AnimationPath::ControlPoint p1(osg::Vec3(0, 5, 0));
-        osg::AnimationPath::ControlPoint p2(osg::Vec3(0, 10, 2));
-        osg::AnimationPath::ControlPoint p3(osg::Vec3(0, 15, 5));
-        osg::AnimationPath::ControlPoint p4(osg::Vec3(0, 20, 8));
-        osg::AnimationPath::ControlPoint p5(osg::Vec3(0, 25, 10));
-        osg::AnimationPath::ControlPoint p6(osg::Vec3(0, 30, 8));
-        osg::AnimationPath::ControlPoint p7(osg::Vec3(0, 35, 5));
-        osg::AnimationPath::ControlPoint p8(osg::Vec3(0, 40, 3));
-        osg::AnimationPath::ControlPoint p9(osg::Vec3(0, 45, 0));
-        osg::AnimationPath::ControlPoint p10(osg::Vec3(0, 50, 0));
-        */
-
-        /*touchePath->insert(0.0f, p0);
-        touchePath->insert(0.2f, p1);
-        touchePath->insert(0.6f, p2);
-        touchePath->insert(0.6f, p3);
-        touchePath->insert(1.0f, p4);
-        touchePath->insert(1.3f, p5);
-        touchePath->insert(1.5f, p6);
-        touchePath->insert(1.8f, p7);
-        touchePath->insert(2.0f, p8);
-        touchePath->insert(2.2f, p9);
-        touchePath->insert(2.4f, p10);*/
+        touchePath->insert(0.0f, p0);
+        touchePath->insert(0.4f, p1);
+        touchePath->insert(0.8f, p2);
+        touchePath->insert(1.2f, p3);
+        touchePath->insert(1.6f, p4);
+        touchePath->insert(2.0f, p5);
+        touchePath->insert(2.4f, p6);
+        touchePath->insert(2.8f, p7);
+        touchePath->insert(3.2f, p8);
+        touchePath->insert(3.6f, p9);
+        touchePath->insert(4.0f, p10);
 
         osg::ref_ptr<osg::AnimationPathCallback> apc = new osg::AnimationPathCallback(touchePath.get());
         theTouche->setUpdateCallback(apc.get());
@@ -519,7 +501,7 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 		Chikoiseau->addChild(transformAileG);
 		Chikoiseau->addChild(transformAileD);
 		Chikoiseau->addChild(transformChikoiseau);
-		//Chikoiseau->setUpdateCallback(new MovementChikoiseau);	
+		//Chikoiseau->setUpdateCallback(new MovementChikoiseau);
 
 		troupeau->addChild(Chikoiseau);
 	}
@@ -593,7 +575,7 @@ int main(void){
 
 	root->addChild(scene);
 	CreateSol();
-    Creationfeet();
+    //Creationfeet();
     //CreationCD();
 	scene->addChild(geodeSol);
 	scene->addChild(creation_troupeau_chikoiseau(50, fieldX, fieldY));
