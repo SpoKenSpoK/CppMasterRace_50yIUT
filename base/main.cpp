@@ -288,7 +288,10 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
         //Path pour les touches
         osg::ref_ptr<osg::AnimationPath> touchePath = new osg::AnimationPath;
         //Définition du mode de bouclage sur le chemin défini
-        //touchePath->setLoopMode(osg::AnimationPath);
+        touchePath->setLoopMode(osg::AnimationPath::LOOP);
+
+        osg::AnimationPath::ControlPoint pZero(osg::Vec3(10, 10, 0));
+        osg::AnimationPath::ControlPoint pOne(osg::Vec3(20, 20, 0));
 
 		touches->addChild(theTouche);
     }
