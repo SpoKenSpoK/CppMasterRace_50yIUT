@@ -11,6 +11,7 @@
 #include <osgGA/DriveManipulator>
 #include <osgSim/DOFTransform>
 #include <osg/AnimationPath>
+#include <string>
 #include "renderToTexture.h"
 //#include "fpsCamera.h"
 
@@ -464,29 +465,28 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 
 	// create a texture
 	// load image for texture
-	osg::Image *image = osgDB::readImageFile("remy.jpg");
-	if (!image) {
-		std::cout << "Couldn't load texture." << std::endl;
-		return NULL;
-	}
-	osg::Texture2D *texture = new osg::Texture2D;
-	texture->setDataVariance(osg::Object::DYNAMIC);
-	texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
-	texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
-	texture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
-	texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
-	texture->setImage(image);
-    //assign the material and texture to the sphere
-    osg::StateSet *sphereStateSet = geode->getOrCreateStateSet();
-    sphereStateSet->ref();
-	sphereStateSet->setAttribute(material);
-	sphereStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
+    std::string source[2] = {"remy.jpg", "raffin.jpg"};
 
 	osg::Node* aileD = osgDB::readNodeFile("wingD.obj");
 	osg::Node* aileG = osgDB::readNodeFile("wingG.obj");
 
 	osg::Group* troupeau = new osg::Group;
 	for(unsigned int i = 0; i < nb_chikoiseau; ++i){
+        std::cout << source[rand()%(int)2] << std::endl;
+        osg::Image *image = osgDB::readImageFile(source[rand()%(int)2]);
+
+    	osg::Texture2D *texture = new osg::Texture2D;
+    	texture->setDataVariance(osg::Object::DYNAMIC);
+    	texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
+    	texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+    	texture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
+    	texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
+    	texture->setImage(image);
+        //assign the material and texture to the sphere
+        osg::StateSet *sphereStateSet = geode->getOrCreateStateSet();
+        sphereStateSet->ref();
+    	sphereStateSet->setAttribute(material);
+    	sphereStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
 		int randX = rand()%(int)taillex;
 		int randY = rand()%(int)tailley;
 		osg::PositionAttitudeTransform* transformChikoiseau = new osg::PositionAttitudeTransform();
@@ -638,7 +638,7 @@ int main(void){
     //Creationfeet();
     //CreationCD();
 	scene->addChild(geodeSol);
-	scene->addChild(creation_troupeau_chikoiseau(50, fieldX, fieldY));
+	scene->addChild(creation_troupeau_chikoiseau(100, fieldX, fieldY));
     scene->addChild(creation_troupeau_touches(50, fieldX, fieldY));
     scene->addChild(creation_panneaux(500, fieldX, fieldY));
     scene->addChild(creation_lampadaires(50, fieldX, fieldY));
