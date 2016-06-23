@@ -293,6 +293,8 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
         osg::AnimationPath::ControlPoint pZero(osg::Vec3(10, 10, 0));
         osg::AnimationPath::ControlPoint pOne(osg::Vec3(20, 20, 0));
 
+        //touchePath
+
 		touches->addChild(theTouche);
     }
     return touches;
