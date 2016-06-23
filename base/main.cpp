@@ -12,6 +12,7 @@
 #include <osgSim/DOFTransform>
 #include <osg/AnimationPath>
 #include <string>
+#include <SFML/Audio.hpp>
 #include "renderToTexture.h"
 //#include "fpsCamera.h"
 
@@ -450,8 +451,6 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
     return touches;
 }
 
-
-
 osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley, std::string filename){
 
 	osg::Sphere* corpsChikoiseau = new osg::Sphere(osg::Vec3(0.0,0.0,5.0), 1.0);
@@ -462,16 +461,6 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 	// create a simple material
 	osg::Material *material = new osg::Material();
 	material->setEmission(osg::Material::FRONT, osg::Vec4(0.8, 0.8, 0.8, 1.0));
-
-	// create a texture
-	// load image for texture
-    /*int tabSize = 2;
-    std::string source[tabSize] = {"raffin.jpg", "remy.jpg"};
-    osg::ref_ptr<osg::Image> tabImage[tabSize];
-    for(unsigned int i = 0; i < tabSize; ++i){
-        tabImage[i] = osgDB::readImageFile(source[i]);
-        std::cerr << source[i] << std::endl;
-    }*/
 
     osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
     texture->setDataVariance(osg::Object::DYNAMIC);
