@@ -649,10 +649,42 @@ void CreationCD(){
  	transformCD = new osg::PositionAttitudeTransform;
  	transformCD->setUpdateCallback(new RotationCD);
  	transformCD->setPosition(osg::Vec3(0,0,6));
+    transformCD->setScale(osg::Vec3(1.0, 1.0, 1.0));
  	transformCD->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
 
  	transformCD->addChild(CD);
-    transformCD->setUpdateCallback(new RefreshSpeed);
+
+    //Path pour les touches
+    osg::ref_ptr<osg::AnimationPath> cdPath = new osg::AnimationPath;
+    //Définition du mode de bouclage sur le chemin défini
+    cdPath->setLoopMode(osg::AnimationPath::SWING);
+
+    osg::AnimationPath::ControlPoint p0(osg::Vec3(0, 0, 0));
+    osg::AnimationPath::ControlPoint p1(osg::Vec3(0, 10, 0));
+    osg::AnimationPath::ControlPoint p2(osg::Vec3(0, 20, 3));
+    osg::AnimationPath::ControlPoint p3(osg::Vec3(0, 30, 6));
+    osg::AnimationPath::ControlPoint p4(osg::Vec3(0, 40, 9));
+    osg::AnimationPath::ControlPoint p5(osg::Vec3(0, 50, 12));
+    osg::AnimationPath::ControlPoint p6(osg::Vec3(0, 60, 9));
+    osg::AnimationPath::ControlPoint p7(osg::Vec3(0, 70, 6));
+    osg::AnimationPath::ControlPoint p8(osg::Vec3(0, 80, 3));
+    osg::AnimationPath::ControlPoint p9(osg::Vec3(0, 90, 0));
+    osg::AnimationPath::ControlPoint p10(osg::Vec3(0, 100, 0));
+
+    cdPath->insert(0.0f, p0);
+    cdPath->insert(0.4f, p1);
+    cdPath->insert(0.8f, p2);
+    cdPath->insert(1.2f, p3);
+    cdPath->insert(1.6f, p4);
+    cdPath->insert(2.0f, p5);
+    cdPath->insert(2.4f, p6);
+    cdPath->insert(2.8f, p7);
+    cdPath->insert(3.2f, p8);
+    cdPath->insert(3.6f, p9);
+    cdPath->insert(4.0f, p10);
+
+    osg::ref_ptr<osg::AnimationPathCallback> apc = new osg::AnimationPathCallback(cdPath.get());
+    transformCD->setUpdateCallback(apc.get());
 
  	scene->addChild(transformCD);
 }
@@ -701,18 +733,18 @@ int main(void){
     //Creationfeet();
     CreationCD();
 	scene->addChild(geodeSol);
-	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"remy.jpg"));
-	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"raffin.jpg"));
-	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"thon.jpeg"));
-	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"triboulet.jpg"));
-	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"tibo.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"remy.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"raffin.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"thon.jpeg"));
+	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"triboulet.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"tibo.jpg"));
     scene->addChild(creation_troupeau_touches(100, fieldX, fieldY));
     scene->addChild(creation_panneaux(200, fieldX, fieldY, "stravingo.jpeg"));
     scene->addChild(creation_panneaux(200, fieldX, fieldY, "doge.jpeg"));
     scene->addChild(creation_panneaux(200, fieldX, fieldY, "nvidia.png"));
     scene->addChild(creation_lampadaires(100, fieldX, fieldY));
     scene->addChild(creation_procs(100, fieldX, fieldY));
-    scene->addChild(creation_condens(100, fieldX, fieldY));
+    scene->addChild(creation_condens(45, fieldX, fieldY));
     scene->addChild(creation_rams(400, fieldX, fieldY));
 	viewer.setSceneData(root);
 
