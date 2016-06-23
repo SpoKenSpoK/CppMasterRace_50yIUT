@@ -102,9 +102,9 @@ void CreateSol(){
 
 	quadSol = osg::createTexturedQuadGeometry(
 	osg::Vec3(0.0, 0.0, 0.0), // Coin de départ
-	osg::Vec3(100.0, 0.0, 0.0),  // largeur
-	osg::Vec3(0.0, 100.0, 0.0),  // hauteur
-	0.0, 0.0, 3.0, 3.0); 		// Coordonnées de texture gauche/bas/droit/haut
+	osg::Vec3(1000.0, 0.0, 0.0),  // largeur
+	osg::Vec3(0.0, 1000.0, 0.0),  // hauteur
+	0.0, 0.0, 30.0, 30.0); 		// Coordonnées de texture gauche/bas/droit/haut
 								// Si vous mettez 4.0 à la place de 1.0,
 								// la texture sera répétée 4 fois
 	quadSol->getOrCreateStateSet()->setTextureAttributeAndModes(0, textureSol.get());
@@ -112,6 +112,47 @@ void CreateSol(){
 
 	geodeSol = new osg::Geode;
 	geodeSol->addDrawable(quadSol);
+}
+
+osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex, float tailley){
+    osg::ref_ptr<osg::Node> feetD = osgDB::readNodeFile("feetD.obj");
+    osg::ref_ptr<osg::Node> feetG = osgDB::readNodeFile("feetG.obj");
+    osg::ref_ptr<osg::Node> touche = osgDB::readNodeFile("key2.stl");
+
+    osg::ref_ptr<osg::Group> touches = new osg::Group;
+    for(unsigned int i=0; i<= nb_touche;  ++i){
+        int randX = rand()%(int)taillex;
+		int randY = rand()%(int)tailley;
+        float angle = rand()%360;
+
+        osg::ref_ptr<osg::PositionAttitudeTransform> tsFeetD = new osg::PositionAttitudeTransform();
+        osg::ref_ptr<osg::PositionAttitudeTransform> tsFeetG = new osg::PositionAttitudeTransform();
+        osg::ref_ptr<osg::PositionAttitudeTransform> tsTouche = new osg::PositionAttitudeTransform();
+
+        tsTouche->setScale(osg::Vec3(0.2, 0.2, 0.2));
+        tsTouche->setPosition(osg::Vec3(randX, randY, 3.5));
+        tsTouche->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+        tsFeetD->setScale(osg::Vec3(0.015, 0.015, 0.015));
+        tsFeetD->setPosition(osg::Vec3(randX-1.0, randY-0.6, 2.7));
+        tsFeetD->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+        tsFeetG->setScale(osg::Vec3(0.015, 0.015, 0.015));
+        tsFeetG->setPosition(osg::Vec3(randX+1.0, randY-0.6, 2.7));
+        tsFeetG->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+
+
+        tsTouche->addChild(touche);
+        tsFeetD->addChild(feetD);
+        tsFeetG->addChild(feetG);
+
+		osg::ref_ptr<osg::PositionAttitudeTransform> theTouche = new osg::PositionAttitudeTransform();
+
+		theTouche->addChild(tsTouche);
+		theTouche->addChild(tsFeetD);
+		theTouche->addChild(tsFeetG);
+
+		touches->addChild(theTouche);
+    }
+    return touches;
 }
 
 osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley){
@@ -223,7 +264,8 @@ int main(void){
 	CreateSol();
 	Creationfeet();
 	scene->addChild(geodeSol);
-	scene->addChild(creation_troupeau_chikoiseau(50, 100, 100));
+	scene->addChild(creation_troupeau_chikoiseau(50, 1000, 1000));
+    scene->addChild(creation_troupeau_touches(50, 1000, 1000));
 	viewer.setSceneData(root);
 
 	osg::ref_ptr<GestionEvenements> gestionnaire = new GestionEvenements();
