@@ -620,7 +620,7 @@ void Creationfeet(){
 int main(void){
     srand(time(NULL));
 	osg::DisplaySettings::instance()->setNumMultiSamples( 4 );
-	viewer.setUpViewInWindow( 100, 50, 800, 600 );
+	viewer.setUpViewInWindow( 100, 50, 1920, 1080 );
 	viewer.getCamera()->setClearColor( osg::Vec4( 0.0,0.0,0.0,1) );
 	viewer.addEventHandler(new osgViewer::StatsHandler);
 	manip = new osgGA::DriveManipulator();
@@ -644,18 +644,19 @@ int main(void){
     //Creationfeet();
     //CreationCD();
 	scene->addChild(geodeSol);
-	scene->addChild(creation_troupeau_chikoiseau(80, fieldX, fieldY,"remy.jpg"));
-	scene->addChild(creation_troupeau_chikoiseau(80, fieldX, fieldY,"raffin.jpg"));
-	scene->addChild(creation_troupeau_chikoiseau(80, fieldX, fieldY,"thon.jpeg"));
-	scene->addChild(creation_troupeau_chikoiseau(80, fieldX, fieldY,"triboulet.jpg"));
-    scene->addChild(creation_troupeau_touches(50, fieldX, fieldY));
-    scene->addChild(creation_panneaux(100, fieldX, fieldY, "stravingo.jpeg"));
-    scene->addChild(creation_panneaux(100, fieldX, fieldY, "doge.jpeg"));
-    scene->addChild(creation_panneaux(100, fieldX, fieldY, "nvidia.png"));
-    scene->addChild(creation_lampadaires(50, fieldX, fieldY));
-    scene->addChild(creation_procs(50, fieldX, fieldY));
-    scene->addChild(creation_condens(50, fieldX, fieldY));
-    scene->addChild(creation_rams(200, fieldX, fieldY));
+	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"remy.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"raffin.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"thon.jpeg"));
+	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"triboulet.jpg"));
+	scene->addChild(creation_troupeau_chikoiseau(160, fieldX, fieldY,"tibo.jpg"));
+    scene->addChild(creation_troupeau_touches(100, fieldX, fieldY));
+    scene->addChild(creation_panneaux(200, fieldX, fieldY, "stravingo.jpeg"));
+    scene->addChild(creation_panneaux(200, fieldX, fieldY, "doge.jpeg"));
+    scene->addChild(creation_panneaux(200, fieldX, fieldY, "nvidia.png"));
+    scene->addChild(creation_lampadaires(100, fieldX, fieldY));
+    scene->addChild(creation_procs(100, fieldX, fieldY));
+    scene->addChild(creation_condens(100, fieldX, fieldY));
+    scene->addChild(creation_rams(400, fieldX, fieldY));
 	viewer.setSceneData(root);
 
     /*patSpeed = new osg::PositionAttitudeTransform;
@@ -670,6 +671,10 @@ int main(void){
     sound.setBuffer(buffer);
     sound.play();
     sound.setLoop(true);
+
+    viewer.setRunFrameScheme(osgViewer::ViewerBase::ON_DEMAND);
+    viewer.setRunFrameScheme(osgViewer::ViewerBase::CONTINUOUS);
+    viewer.setRunMaxFrameRate(60.0);
 
 	osg::ref_ptr<GestionEvenements> gestionnaire = new GestionEvenements();
 	viewer.addEventHandler(gestionnaire.get());
