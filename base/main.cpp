@@ -524,7 +524,7 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 
 osg::Group* creation_panneaux(int nb_panneaux, float taillex, float tailley){
 
-	osg::Box* shapePanneau = new osg::Box(osg::Vec3(0.0,0.0,7.0), 0.0, 2.0, 2.0);
+	osg::Box* shapePanneau = new osg::Box(osg::Vec3(0.0,0.0,7.0), 0.01, 4.0, 4.0);
 	osg::ShapeDrawable* shapeDrawable = new osg::ShapeDrawable(shapePanneau);
 	osg::Geode* geode = new osg::Geode();
 	geode->addDrawable(shapeDrawable);
@@ -535,7 +535,7 @@ osg::Group* creation_panneaux(int nb_panneaux, float taillex, float tailley){
 
 	// create a texture
 	// load image for texture
-	osg::Image *image = osgDB::readImageFile("raffin.jpg");
+	osg::Image *image = osgDB::readImageFile("doge.jpeg");
 	if (!image) {
 		std::cout << "Couldn't load texture." << std::endl;
 		return NULL;
@@ -641,7 +641,7 @@ int main(void){
 	scene->addChild(geodeSol);
 	scene->addChild(creation_troupeau_chikoiseau(50, fieldX, fieldY));
     scene->addChild(creation_troupeau_touches(50, fieldX, fieldY));
-    scene->addChild(creation_panneaux(500, fieldX, fieldY));
+    scene->addChild(creation_panneaux(300, fieldX, fieldY));
     scene->addChild(creation_lampadaires(50, fieldX, fieldY));
     scene->addChild(creation_procs(50, fieldX, fieldY));
     scene->addChild(creation_condens(50, fieldX, fieldY));
