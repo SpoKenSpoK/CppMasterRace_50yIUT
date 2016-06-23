@@ -13,6 +13,7 @@
 #include <osg/AnimationPath>
 #include <string>
 #include <SFML/Audio.hpp>
+#include <SFML/System.hpp>
 #include "renderToTexture.h"
 //#include "fpsCamera.h"
 
@@ -656,6 +657,15 @@ int main(void){
     /*patSpeed = new osg::PositionAttitudeTransform;
     patSpeed->setUpdateCallback(new RefreshSpeed);
     scene->addChild(patSpeed);*/
+
+    sf::SoundBuffer buffer;
+    if (!buffer.loadFromFile("PIGS_WORLD_by_ANTICEPTIK_KAOTEK.ogg"))
+        return -1;
+
+    sf::Sound sound;
+    sound.setBuffer(buffer);
+    sound.play();
+    sound.setLoop(true);
 
 	osg::ref_ptr<GestionEvenements> gestionnaire = new GestionEvenements();
 	viewer.addEventHandler(gestionnaire.get());
