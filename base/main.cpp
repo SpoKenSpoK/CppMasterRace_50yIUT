@@ -372,6 +372,35 @@ osg::ref_ptr<osg::Group> creation_rams(int nb_rams, float taillex, float tailley
     return rams;
 }
 
+osg::ref_ptr<osg::Group> creation_ventirads(int nb_ventirads, float taillex, float tailley){
+    osg::ref_ptr<osg::Node> ventirad = osgDB::readNodeFile("ventirad.obj");
+
+    osg::ref_ptr<osg::Group> ventirads = new osg::Group;
+    for(unsigned int i=0; i<= nb_ventirads; ++i){
+        int randX = rand()%(int)taillex;
+		int randY = rand()%(int)tailley;
+		angle = rand()%360;
+
+        osg::ref_ptr<Barette> tsVentirad = new Barette(angle);
+
+        tsVentirad->setScale(osg::Vec3(100.0, 100.0, 100.0));
+        tsVentirad->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
+        tsVentirad->setPosition(osg::Vec3(randX, randY, 0.0));
+
+        tsVentirad->setUpdateCallback(new ventiradCallback);
+
+        tsVentirad->addChild(ventirad);
+
+		osg::ref_ptr<osg::PositionAttitudeTransform> theVentirad = new osg::PositionAttitudeTransform();
+        theVentirad->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
+
+		theVentirad->addChild(tsVentirad);
+
+		vendirads->addChild(theVentirad);
+    }
+    return rams;
+}
+
 osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex, float tailley){
     osg::ref_ptr<osg::Node> feetD = osgDB::readNodeFile("feetD.obj");
     osg::ref_ptr<osg::Node> feetG = osgDB::readNodeFile("feetG.obj");
@@ -590,20 +619,13 @@ void CreationCD(){
     osg::ref_ptr<osg::PositionAttitudeTransform> transformCD;
     osg::ref_ptr<osg::Node> CD;
 
- 	CD = osgDB::readNodeFile("DVD.stl");
+ 	CD = osgDB::readNodeFile("CD.3ds");
 
  	transformCD = new osg::PositionAttitudeTransform;
  	transformCD->setUpdateCallback(new RotationCD);
  	transformCD->setPosition(osg::Vec3(0,0,6));
- 	CD->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
-    osg::Texture2D* textureCD = new osg::Texture2D;
-	textureCD->setImage(osgDB::readImageFile("raffin.jpg"));
-	textureCD->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR );
-	textureCD->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR );
-	textureCD->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
-	textureCD->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
+ 	transformCD->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
 
-    CD->getOrCreateStateSet()->setTextureAttributeAndModes(0, textureCD, osg::StateAttribute::ON);
  	transformCD->addChild(CD);
     transformCD->setUpdateCallback(new RefreshSpeed);
 
@@ -634,7 +656,7 @@ int main(void){
 	viewer.getCamera()->setClearColor( osg::Vec4( 0.0,0.0,0.0,1) );
 	viewer.addEventHandler(new osgViewer::StatsHandler);
 	manip = new osgGA::DriveManipulator();
-	viewer.setCameraManipulator(manip.get());
+	//viewer.setCameraManipulator(manip.get());
 	scene = new osg::Group;
 	root = new osg::Group;
 
@@ -652,7 +674,7 @@ int main(void){
 	root->addChild(scene);
 	CreateSol();
     //Creationfeet();
-    //CreationCD();
+    CreationCD();
 	scene->addChild(geodeSol);
 	scene->addChild(creation_troupeau_chikoiseau(100, fieldX, fieldY,"remy.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(100, fieldX, fieldY,"raffin.jpg"));
