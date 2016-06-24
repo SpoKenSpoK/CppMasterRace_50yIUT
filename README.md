@@ -6,7 +6,7 @@ Ci-dessous vous trouverez les librairies nécessaires au bon fonctionnement du p
 ##Fonctionnel (et testé) uniquement sous Linux
 ----------
 
-###n°1 : installer OSG(OpenSceneGraph) ainsi que SFML. \n
+###n°1 : installer OSG(OpenSceneGraph) ainsi que SFML.
 Sous Ubuntu/Debian : **sudo apt-get install openscenegraph && libopenscenegraph-dev && libsfml-dev**
 
 ###n°2 : fork notre projet (ou bien le télécharger).
@@ -18,7 +18,7 @@ Dans le cas où il ne se lancerait pas : **sudo chmod +x compil**
 ###n°4 : lancement du programme.
 **./main**
 
-###n°5 : apprécier le wtf. \n
+###n°5 : apprécier le wtf.
 Un casque est conseillé pour profiter pleinement de l'expérience.
 
 ----------
