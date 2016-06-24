@@ -39,19 +39,6 @@ osg::ref_ptr<osgGA::DriveManipulator> manip;
 float fieldX = 1000.0;
 float fieldY = 1000.0;
 
-class RefreshSpeed : public osg::NodeCallback
-{
-public:
-    virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
-    {
-		double vitesse = 0.0;
-		vitesse = manip->getVelocity();
-		if(vitesse < -2.0) vitesse += 1.0;
-        if(vitesse > 20.0) vitesse -= 1.0;
-        manip->setVelocity(vitesse);
-        manip->setIntersectTraversalMask(0);
-    }
-};
 
 class Barette : public osg::PositionAttitudeTransform{
 public:
@@ -282,9 +269,9 @@ void CreationCiel(){
 	textureCiel->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
 
 	quadCiel = osg::createTexturedQuadGeometry(
-	osg::Vec3(-1000.0, -1000.0, 200.0), // Coin de départ
-	osg::Vec3(1000, 0.0, 200.0),  // largeur
-	osg::Vec3(0.0, 1000, 200.0),  // hauteur
+	osg::Vec3(-50000.0, -50000.0, 200.0), // Coin de départ
+	osg::Vec3(100000, 0.0, 0.0),  // largeur
+	osg::Vec3(0.0, 100000, 0.0),  // hauteur
 	0.0, 0.0, 80.0, 80.0); 		// Coordonnées de texture gauche/bas/droit/haut
 								// Si vous mettez 4.0 à la place de 1.0,
 								// la texture sera répétée 4 fois
@@ -743,8 +730,6 @@ void Creationfeet(){
  	transformFeet->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
  	transformFeet->addChild(feet);
 
-    transformFeet->setUpdateCallback(new RefreshSpeed);
-
  	scene->addChild(transformFeet);
 }
 
@@ -755,7 +740,7 @@ int main(void){
 	viewer.getCamera()->setClearColor( osg::Vec4( 0.0,0.0,0.0,1) );
 	viewer.addEventHandler(new osgViewer::StatsHandler);
 	manip = new osgGA::DriveManipulator();
-	//viewer.setCameraManipulator(manip.get());
+	viewer.setCameraManipulator(manip.get());
 	scene = new osg::Group;
 	root = new osg::Group;
 
@@ -793,7 +778,8 @@ int main(void){
     scene->addChild(creation_rams(250, fieldX, fieldY));
     CreationCiel();
 	scene->addChild(geodeCiel);
-	manip->setNode(geodeSol);
+	//manip->setNode(geodeSol);
+	//manip->setHeight(1.5);
 	viewer.setSceneData(root);
 
 
