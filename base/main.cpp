@@ -84,10 +84,6 @@ public:
 		pos->setAttitude(osg::Quat(osg::DegreesToRadians(anglePiedG), osg::Vec3(1.0, 0.0, 0.0)));
 
 		viewer.getCamera()->setViewMatrixAsLookAt( osg::Vec3d(1000.0, 1000.0, 0.0), osg::Vec3d(0.0,0.0,0.0), osg::Vec3d(0.0, 0.0, 1.0) );
-	
-
-
-
 
     }
 };
@@ -146,7 +142,7 @@ public:
 			pos->vit.x() = -pos->vit.x();
 		else if (pos->getPosition().y() < 0 or pos->getPosition().y() > fieldY)
 			pos->vit.y() = -pos->vit.y();
-		
+
     }
 };
 
@@ -759,7 +755,7 @@ int main(void){
 	viewer.getCamera()->setClearColor( osg::Vec4( 0.0,0.0,0.0,1) );
 	viewer.addEventHandler(new osgViewer::StatsHandler);
 	manip = new osgGA::DriveManipulator();
-	viewer.setCameraManipulator(manip.get());
+	//viewer.setCameraManipulator(manip.get());
 	scene = new osg::Group;
 	root = new osg::Group;
 
