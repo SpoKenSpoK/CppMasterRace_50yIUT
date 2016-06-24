@@ -3,22 +3,22 @@
 Ci-dessous vous trouverez les librairies nécessaires au bon fonctionnement du programme ainsi que divers "astuces" - lel.
 
 ----------
-Fonctionnel (et testé) uniquement sous Linux
+##Fonctionnel (et testé) uniquement sous Linux
 ----------
 
-n°1 : installer OSG(OpenSceneGraph) ainsi que SFML.
-Sous Ubuntu/Debian : sudo apt-get install openscenegraph && libopenscenegraph-dev && libsfml-dev
+###n°1 : installer OSG(OpenSceneGraph) ainsi que SFML. \n
+Sous Ubuntu/Debian : \nsudo apt-get install openscenegraph && libopenscenegraph-dev && libsfml-dev
 
-n°2 : fork notre projet (ou bien le télécharger).
+###n°2 : fork notre projet (ou bien le télécharger).
 
-n°3 : compiler le pogramme.
-Pour se faire un script bash existe. Il s'agit du fichier "compil". Pour le lancer : ./compil
+###n°3 : compiler le pogramme. \n
+Pour se faire un script bash existe. Il s'agit du fichier "compil". Pour le lancer : ./compil \n
 Dans le cas où il ne se lancerait pas : sudo chmod +x compil
 
-n°4 : lancement du programme.
+###n°4 : lancement du programme. \n
 -> ./main
 
-n°5 : apprécier le wtf.
+###n°5 : apprécier le wtf. \n
 Un casque est conseillé pour profiter pleinement de l'expérience.
 
 ----------
