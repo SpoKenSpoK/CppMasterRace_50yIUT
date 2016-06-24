@@ -214,10 +214,8 @@ bool GestionEvenements::handle( const osgGA::GUIEventAdapter& ea,
  osgGA::GUIActionAdapter& aa)
 {
 	switch(ea.getEventType()){
-		case osgGA::GUIEventAdapter::KEYDOWN :
-
+        std::cout << ea.getKey() << std::endl;
 			switch(ea.getKey()){
-
 				case 'a':
 					break;
 				case 'z':
@@ -466,10 +464,25 @@ osg::ref_ptr<osg::Group> creation_ventirads(int nb_ventirads, float taillex, flo
 }
 
 osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex, float tailley){
+
+    osg::ref_ptr<osg::Material> material = new osg::Material();
+    material->setEmission(osg::Material::FRONT, osg::Vec4(0.8, 0.8, 0.8, 1.0));
+
+    osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
+    texture->setDataVariance(osg::Object::DYNAMIC);
+    texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
+    texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
+    texture->setWrap(osg::Texture::WRAP_S, osg::Texture::CLAMP);
+    texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
+
+    osg::ref_ptr<osg::Image> image = osgDB::readImageFile("thon.jpeg");
+    texture->setImage(image);
+
     osg::ref_ptr<osg::Node> feetD = osgDB::readNodeFile("feetD.obj");
     osg::ref_ptr<osg::Node> feetG = osgDB::readNodeFile("feetG.obj");
     osg::ref_ptr<osg::Node> touche = osgDB::readNodeFile("key.3ds");
-
+    osg::ref_ptr<osg::StateSet> state = touche->getOrCreateStateSet();
+    state->setTextureAttributeAndModes(0,texture.get(),osg::StateAttribute::ON);
     osg::ref_ptr<osg::Group> touches = new osg::Group;
     for(unsigned int i=0; i<= nb_touche;  ++i){
         int randX = rand()%(int)taillex;
@@ -914,6 +927,16 @@ int main(void){
     sound.play();
     sound.setLoop(true);
     sound.setVolume(100);
+
+    // sf::SoundBuffer buffer_;
+    // if (!buffer_.loadFromFile("No_No_No_Cat.ogg"))
+    //     return -1;
+    //
+    // sf::Sound sound_;
+    // sound_.setBuffer(buffer_);
+    // sound_.play();
+    // sound_.setLoop(true);
+    // sound_.setVolume(100);
 
     viewer.setRunFrameScheme(osgViewer::ViewerBase::ON_DEMAND);
     viewer.setRunFrameScheme(osgViewer::ViewerBase::CONTINUOUS);
