@@ -34,5 +34,5 @@ Pour "intéragir" ou plutôt se déplacer dans la simulation :
 
 ----------
 
-Enjoy - Guillaume BOEHM, Johann DENOIZE, Thibault HECKEL.
+Enjoy - **Guillaume BOEHM**, **Johann DENOIZE**, **Thibault HECKEL**.
 
