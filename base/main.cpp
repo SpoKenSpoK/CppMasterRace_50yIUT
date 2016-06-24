@@ -11,6 +11,7 @@
 #include <osgGA/DriveManipulator>
 #include <osgSim/DOFTransform>
 #include <osg/AnimationPath>
+#include <osgParticle/SmokeEffect>
 #include <string>
 #include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
@@ -19,16 +20,19 @@
 
 osg::ref_ptr<osg::Group> root;
 osgViewer::Viewer viewer;
-osg::Group* scene;
+osg::ref_ptr<osg::Group> scene;
 
 osg::ref_ptr<osg::Geometry> quadSol;
+osg::ref_ptr<osg::Geometry> quadCiel;
 osg::ref_ptr<osg::Texture2D> textureSol;
+osg::ref_ptr<osg::Texture2D> textureCiel;
 
 osg::ref_ptr<osg::PositionAttitudeTransform> transformFeet;
 osg::ref_ptr<osg::PositionAttitudeTransform> patSpeed;
 osg::ref_ptr<osg::Node> feet;
 
 osg::ref_ptr<osg::Geode> geodeSol;
+osg::ref_ptr<osg::Geode> geodeCiel;
 
 osg::ref_ptr<osgGA::DriveManipulator> manip;
 
@@ -52,11 +56,12 @@ public:
 class Barette : public osg::PositionAttitudeTransform{
 public:
 	Barette(float _angle);
-	float angle;
+	osg::Vec2 vit;
 };
 
 Barette::Barette(float _angle){
-	angle = _angle;
+	vit.x() = cos(_angle)/10;
+	vit.y() = sin(_angle)/10;
 }
 
 float anglePiedG = 0.0;
@@ -77,6 +82,13 @@ public:
 			if(anglePiedG>50) monte = true;
 		}
 		pos->setAttitude(osg::Quat(osg::DegreesToRadians(anglePiedG), osg::Vec3(1.0, 0.0, 0.0)));
+
+		viewer.getCamera()->setViewMatrixAsLookAt( osg::Vec3d(1000.0, 1000.0, 0.0), osg::Vec3d(0.0,0.0,0.0), osg::Vec3d(0.0, 0.0, 1.0) );
+	
+
+
+
+
     }
 };
 
@@ -128,14 +140,13 @@ public:
     {
 		Barette* pos = (Barette*)n;
 
-		float angle = pos->angle;
-		pos->setPosition(osg::Vec3(pos->getPosition().x()+(cos(angle)/10), pos->getPosition().y()+(sin(angle)/10), pos->getPosition().z()));
+		pos->setPosition(osg::Vec3(pos->getPosition().x()+pos->vit.x(), pos->getPosition().y()+pos->vit.y(), pos->getPosition().z()));
 
-		if(pos->getPosition().x() < 0 or pos->getPosition().x() > fieldX or pos->getPosition().y() < 0 or pos->getPosition().y() > fieldY){
-			if(angle > 0) angle -= 180;
-			else angle += 180;
-		}
-
+		if(pos->getPosition().x() < 0 or pos->getPosition().x() > fieldX)
+			pos->vit.x() = -pos->vit.x();
+		else if (pos->getPosition().y() < 0 or pos->getPosition().y() > fieldY)
+			pos->vit.y() = -pos->vit.y();
+		
     }
 };
 
@@ -209,20 +220,6 @@ public:
     }
 };
 
-float angleCD = 0.0;
-class RotationCD : public osg::NodeCallback
-{
-public:
-    virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
-    {
-        // code pour modifier le nœud, par exemple la position si il s 'agit
-        // d'un nœud de type osg::PositionAttitudeTransform :
-        osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
-		angleCD += 0.04;
-		pos->setAttitude(osg::Quat(osg::DegreesToRadians(angleCD), osg::Vec3(0.0, 0.0, 1.0)));
-    }
-};
-
 class GestionEvenements : public osgGA::GUIEventHandler
 {
 	public:
@@ -280,6 +277,28 @@ void CreateSol(){
 	geodeSol->addDrawable(quadSol);
 }
 
+void CreationCiel(){
+	textureCiel = new osg::Texture2D;
+	textureCiel->setImage(osgDB::readImageFile("binaire.jpg"));
+	textureCiel->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
+	textureCiel->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR );
+	textureCiel->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
+	textureCiel->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
+
+	quadCiel = osg::createTexturedQuadGeometry(
+	osg::Vec3(-10000.0, -10000.0, 200.0), // Coin de départ
+	osg::Vec3(10000, 0.0, 200.0),  // largeur
+	osg::Vec3(0.0, 10000, 200.0),  // hauteur
+	0.0, 0.0, 80.0, 80.0); 		// Coordonnées de texture gauche/bas/droit/haut
+								// Si vous mettez 4.0 à la place de 1.0,
+								// la texture sera répétée 4 fois
+	quadCiel->getOrCreateStateSet()->setTextureAttributeAndModes(0, textureCiel.get());
+	//quadCiel->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+
+	geodeCiel = new osg::Geode;
+	geodeCiel->addDrawable(quadCiel);
+}
+
 osg::ref_ptr<osg::Group> creation_procs(int nb_procs, float taillex, float tailley){
     osg::ref_ptr<osg::Node> proc = osgDB::readNodeFile("proc.3ds");
 
@@ -332,9 +351,32 @@ osg::ref_ptr<osg::Group> creation_condens(int nb_condenss, float taillex, float 
     return condenss;
 }
 
+osg::ref_ptr<osg::Group> creation_memoryleak(int nb_memoryleak, float taillex, float tailley, std::string nameFile){
+    osg::ref_ptr<osg::Group> memoryleaks = new osg::Group;
+    osg::ref_ptr<osgParticle::SmokeEffect> memoryleak = new osgParticle::SmokeEffect;
+	memoryleak->setTextureFileName(nameFile);
+	memoryleak->setIntensity(1);
+	memoryleak->setScale(2);
+	memoryleak->setEmitterDuration(99999999.99999);
+
+    for(unsigned int i=0; i<= nb_memoryleak;  ++i){
+        int randX = rand()%(int)taillex;
+		int randY = rand()%(int)tailley;
+
+		osg::ref_ptr<osg::PositionAttitudeTransform> PATmemoryleak = new osg::PositionAttitudeTransform();
+
+		std::cout << randX << " : " << randY << std::endl;
+		PATmemoryleak->setPosition(osg::Vec3(randX, randY, 0.0));
+
+		PATmemoryleak->addChild(memoryleak);
+
+		memoryleaks->addChild(PATmemoryleak);
+    }
+    return memoryleaks;
+}
+
 osg::ref_ptr<osg::Group> creation_lampadaires(int nb_lampadaires, float taillex, float tailley){
     osg::ref_ptr<osg::Node> lampadaire = osgDB::readNodeFile("led2.3ds");
-    //osg::ref_ptr<osg::Node> light = osg::LightSource();
 
     osg::ref_ptr<osg::Group> lampadaires = new osg::Group;
     for(unsigned int i=0; i<= nb_lampadaires; ++i){
@@ -400,7 +442,7 @@ public:
 	_node = &node;
 	traverse( node ); // On continue le parcours du graphe
 	}
-	osg::Node* getNode() { return _node.get(); }
+	osg::ref_ptr<osg::Node> getNode() { return _node.get(); }
 protected:
 	std::string _name;
 	osg::ref_ptr<osg::Node> _node;
@@ -516,15 +558,15 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
     return touches;
 }
 
-osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley, std::string filename){
+osg::ref_ptr<osg::Group> creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley, std::string filename){
 
-	osg::Sphere* corpsChikoiseau = new osg::Sphere(osg::Vec3(0.0,0.0,5.0), 1.0);
-	osg::ShapeDrawable* shapeDrawable = new osg::ShapeDrawable(corpsChikoiseau);
-	osg::Geode* geode = new osg::Geode();
+	osg::ref_ptr<osg::Sphere> corpsChikoiseau = new osg::Sphere(osg::Vec3(0.0,0.0,5.0), 1.0);
+	osg::ref_ptr<osg::ShapeDrawable> shapeDrawable = new osg::ShapeDrawable(corpsChikoiseau);
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode();
 	geode->addDrawable(shapeDrawable);
 
 	// create a simple material
-	osg::Material *material = new osg::Material();
+	osg::ref_ptr<osg::Material> material = new osg::Material();
 	material->setEmission(osg::Material::FRONT, osg::Vec4(0.8, 0.8, 0.8, 1.0));
 
     osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
@@ -537,28 +579,28 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
     osg::ref_ptr<osg::Image> image = osgDB::readImageFile(filename);
     texture->setImage(image);
 
-	osg::Node* aileD = osgDB::readNodeFile("wingD.obj");
-	osg::Node* aileG = osgDB::readNodeFile("wingG.obj");
+	osg::ref_ptr<osg::Node> aileD = osgDB::readNodeFile("wingD.obj");
+	osg::ref_ptr<osg::Node> aileG = osgDB::readNodeFile("wingG.obj");
 
-	osg::Group* troupeau = new osg::Group;
+	osg::ref_ptr<osg::Group> troupeau = new osg::Group;
 	for(unsigned int i = 0; i < nb_chikoiseau; ++i){
         //osg::ref_ptr<osg::Image> image = osgDB::readImageFile(tete);
-        osg::StateSet *sphereStateSet = geode->getOrCreateStateSet();
+        osg::ref_ptr<osg::StateSet> sphereStateSet = geode->getOrCreateStateSet();
         sphereStateSet->ref();
     	sphereStateSet->setAttribute(material);
         sphereStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
 
 		int randX = rand()%(int)taillex;
 		int randY = rand()%(int)tailley;
-		osg::PositionAttitudeTransform* transformChikoiseau = new osg::PositionAttitudeTransform();
+		osg::ref_ptr<osg::PositionAttitudeTransform> transformChikoiseau = new osg::PositionAttitudeTransform();
 		transformChikoiseau->setPosition(osg::Vec3(randX, randY, 1.0));
 
 		float angle = rand()%360;
 		transformChikoiseau->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
 		transformChikoiseau->addChild(geode);
 
-		osg::PositionAttitudeTransform* transformAileG = new osg::PositionAttitudeTransform();
-        osg::PositionAttitudeTransform* transformAileD = new osg::PositionAttitudeTransform();
+		osg::ref_ptr<osg::PositionAttitudeTransform> transformAileG = new osg::PositionAttitudeTransform();
+        osg::ref_ptr<osg::PositionAttitudeTransform> transformAileD = new osg::PositionAttitudeTransform();
 
 		transformAileG->setPosition(osg::Vec3(randX, randY, 6.0));
         transformAileD->setPosition(osg::Vec3(randX, randY, 6.0));
@@ -569,9 +611,9 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
         transformAileG->setScale(osg::Vec3(0.5,0.5,0.5));
         transformAileD->setScale(osg::Vec3(0.5,0.5,0.5));
 
-		osg::PositionAttitudeTransform* Chikoiseau = new osg::PositionAttitudeTransform();
-		osg::PositionAttitudeTransform* aileDRotate = new osg::PositionAttitudeTransform();
-		osg::PositionAttitudeTransform* aileGRotate = new osg::PositionAttitudeTransform();
+		osg::ref_ptr<osg::PositionAttitudeTransform> Chikoiseau = new osg::PositionAttitudeTransform();
+		osg::ref_ptr<osg::PositionAttitudeTransform> aileDRotate = new osg::PositionAttitudeTransform();
+		osg::ref_ptr<osg::PositionAttitudeTransform> aileGRotate = new osg::PositionAttitudeTransform();
 
 		aileDRotate->addChild(aileG);
 		aileGRotate->addChild(aileD);
@@ -593,25 +635,25 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 	return troupeau;
 }
 
-osg::Group* creation_panneaux(int nb_panneaux, float taillex, float tailley, std::string nomImage){
+osg::ref_ptr<osg::Group> creation_panneaux(int nb_panneaux, float taillex, float tailley, std::string nomImage){
 
-	osg::Box* shapePanneau = new osg::Box(osg::Vec3(0.0,0.0,7.0), 0.01, 4.0, 4.0);
-	osg::ShapeDrawable* shapeDrawable = new osg::ShapeDrawable(shapePanneau);
-	osg::Geode* geode = new osg::Geode();
+	osg::ref_ptr<osg::Box> shapePanneau = new osg::Box(osg::Vec3(0.0,0.0,7.0), 0.01, 4.0, 4.0);
+	osg::ref_ptr<osg::ShapeDrawable> shapeDrawable = new osg::ShapeDrawable(shapePanneau);
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode();
 	geode->addDrawable(shapeDrawable);
 
 	// create a simple material
-	osg::Material *material = new osg::Material();
+	osg::ref_ptr<osg::Material> material = new osg::Material();
 	material->setEmission(osg::Material::FRONT, osg::Vec4(0.8, 0.8, 0.8, 1.0));
 
 	// create a texture
 	// load image for texture
-	osg::Image *image = osgDB::readImageFile(nomImage);
+	osg::ref_ptr<osg::Image> image = osgDB::readImageFile(nomImage);
 	if (!image) {
 		std::cout << "Couldn't load texture." << std::endl;
 		return NULL;
 	}
-	osg::Texture2D *texture = new osg::Texture2D;
+	osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
 	texture->setDataVariance(osg::Object::DYNAMIC);
 	texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
 	texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
@@ -619,17 +661,17 @@ osg::Group* creation_panneaux(int nb_panneaux, float taillex, float tailley, std
 	texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
 	texture->setImage(image);
     //assign the material and texture to the sphere
-    osg::StateSet *boxStateSet = geode->getOrCreateStateSet();
+    osg::ref_ptr<osg::StateSet> boxStateSet = geode->getOrCreateStateSet();
     boxStateSet->ref();
 	boxStateSet->setAttribute(material);
 	boxStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
 
-	osg::Group* troupeau = new osg::Group;
+	osg::ref_ptr<osg::Group> troupeau = new osg::Group;
 	for(unsigned int i = 0; i < nb_panneaux; ++i){
 		int randX = rand()%(int)taillex;
 		int randY = rand()%(int)tailley;
 
-		osg::PositionAttitudeTransform* transformPanneau = new osg::PositionAttitudeTransform();
+		osg::ref_ptr<osg::PositionAttitudeTransform> transformPanneau = new osg::PositionAttitudeTransform();
 		transformPanneau->setPosition(osg::Vec3(randX, randY, 1.0));
 		float angle = rand()%360;
 		transformPanneau->setAttitude(osg::Quat(osg::DegreesToRadians(0.0), osg::Vec3(1.0, 0.0, 0.0), osg::DegreesToRadians(50.0), osg::Vec3(0.0, 1.0, 0.0), osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
@@ -644,12 +686,11 @@ void CreationCD(){
     osg::ref_ptr<osg::PositionAttitudeTransform> transformCD;
     osg::ref_ptr<osg::Node> CD;
 
- 	CD = osgDB::readNodeFile("CD.3ds");
+ 	CD = osgDB::readNodeFile("cd.3ds");
 
  	transformCD = new osg::PositionAttitudeTransform;
- 	transformCD->setUpdateCallback(new RotationCD);
- 	transformCD->setPosition(osg::Vec3(0,0,6));
-    transformCD->setScale(osg::Vec3(100.0, 100.0, 100.0));
+ 	transformCD->setPosition(osg::Vec3(0,0,0));
+    transformCD->setScale(osg::Vec3(1.0, 1.0, 1.0));
  	transformCD->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
 
  	transformCD->addChild(CD);
@@ -659,19 +700,21 @@ void CreationCD(){
     //Définition du mode de bouclage sur le chemin défini
     cdPath->setLoopMode(osg::AnimationPath::LOOP);
 
-    osg::AnimationPath::ControlPoint p0rot(osg::Vec3(100, 0.0, 6.0), osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(0.0, 0.0, 1.0)));
-    osg::AnimationPath::ControlPoint p1rot(osg::Vec3(100, 800, 6.0), osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(0.0, 0.0, 1.0)));
-    osg::AnimationPath::ControlPoint p2rot(osg::Vec3(200, 900, 6.0), osg::Quat(osg::DegreesToRadians(00.0), osg::Vec3(0.0, 0.0, 1.0)));
-    osg::AnimationPath::ControlPoint p3rot(osg::Vec3(300, 800, 6.0), osg::Quat(osg::DegreesToRadians(-90.0), osg::Vec3(0.0, 0.0, 1.0)));
-    osg::AnimationPath::ControlPoint p4rot(osg::Vec3(300, 200, 6.0), osg::Quat(osg::DegreesToRadians(-90.0), osg::Vec3(0.0, 0.0, 1.0)));
-    osg::AnimationPath::ControlPoint p5rot(osg::Vec3(400, 100, 6.0), osg::Quat(osg::DegreesToRadians(00.0), osg::Vec3(0.0, 0.0, 1.0)));
-    osg::AnimationPath::ControlPoint p6rot(osg::Vec3(500, 200, 6.0), osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(0.0, 0.0, 1.0)));
-    osg::AnimationPath::ControlPoint p7rot(osg::Vec3(500, 800, 6.0), osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(0.0, 0.0, 1.0)));
-    osg::AnimationPath::ControlPoint p8rot(osg::Vec3(600, 900, 6.0), osg::Quat(osg::DegreesToRadians(00.0), osg::Vec3(0.0, 0.0, 1.0)));
-    osg::AnimationPath::ControlPoint p9rot(osg::Vec3(700, 800, 6.0), osg::Quat(osg::DegreesToRadians(-90.0), osg::Vec3(0.0, 0.0, 1.0)));
-    osg::AnimationPath::ControlPoint p10rot(osg::Vec3(700, 200, 6.0), osg::Quat(osg::DegreesToRadians(-90.0), osg::Vec3(0.0, 0.0, 1.0)));
-    osg::AnimationPath::ControlPoint p11rot(osg::Vec3(800, 100, 6.0), osg::Quat(osg::DegreesToRadians(00.0), osg::Vec3(0.0, 0.0, 1.0)));
-    osg::AnimationPath::ControlPoint p12rot(osg::Vec3(900, 0.0, 6.0), osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(0.0, 0.0, 1.0)));
+    float height = 0.0;
+
+    osg::AnimationPath::ControlPoint p0rot(osg::Vec3(100, 0.0, height), osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(0.0, 0.0, 1.0)));
+    osg::AnimationPath::ControlPoint p1rot(osg::Vec3(100, 800, height), osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(0.0, 0.0, 1.0)));
+    osg::AnimationPath::ControlPoint p2rot(osg::Vec3(200, 900, height), osg::Quat(osg::DegreesToRadians(00.0), osg::Vec3(0.0, 0.0, 1.0)));
+    osg::AnimationPath::ControlPoint p3rot(osg::Vec3(300, 800, height), osg::Quat(osg::DegreesToRadians(-90.0), osg::Vec3(0.0, 0.0, 1.0)));
+    osg::AnimationPath::ControlPoint p4rot(osg::Vec3(300, 200, height), osg::Quat(osg::DegreesToRadians(-90.0), osg::Vec3(0.0, 0.0, 1.0)));
+    osg::AnimationPath::ControlPoint p5rot(osg::Vec3(400, 100, height), osg::Quat(osg::DegreesToRadians(00.0), osg::Vec3(0.0, 0.0, 1.0)));
+    osg::AnimationPath::ControlPoint p6rot(osg::Vec3(500, 200, height), osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(0.0, 0.0, 1.0)));
+    osg::AnimationPath::ControlPoint p7rot(osg::Vec3(500, 800, height), osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(0.0, 0.0, 1.0)));
+    osg::AnimationPath::ControlPoint p8rot(osg::Vec3(600, 900, height), osg::Quat(osg::DegreesToRadians(00.0), osg::Vec3(0.0, 0.0, 1.0)));
+    osg::AnimationPath::ControlPoint p9rot(osg::Vec3(700, 800, height), osg::Quat(osg::DegreesToRadians(-90.0), osg::Vec3(0.0, 0.0, 1.0)));
+    osg::AnimationPath::ControlPoint p10rot(osg::Vec3(700, 200, height), osg::Quat(osg::DegreesToRadians(-90.0), osg::Vec3(0.0, 0.0, 1.0)));
+    osg::AnimationPath::ControlPoint p11rot(osg::Vec3(800, 100, height), osg::Quat(osg::DegreesToRadians(00.0), osg::Vec3(0.0, 0.0, 1.0)));
+    osg::AnimationPath::ControlPoint p12rot(osg::Vec3(900, 0.0, height), osg::Quat(osg::DegreesToRadians(90.0), osg::Vec3(0.0, 0.0, 1.0)));
 
     cdPath->insert(0.0f, p0rot);
     cdPath->insert(8.0f, p1rot);
@@ -727,7 +770,7 @@ int main(void){
 	lumiere->getLight()->setAmbient(osg::Vec4(0.3, 0.3, 0.3, 1.0));
 	lumiere->getLight()->setDiffuse(osg::Vec4(0.5, 0.5, 0.5, 1.0));
 	lumiere->getLight()->setSpecular(osg::Vec4(1.0, 1.0, 1.0, 1.0));
-	osg::StateSet* state = scene->getOrCreateStateSet();
+	osg::ref_ptr<osg::StateSet> state = scene->getOrCreateStateSet();
 	state->setMode( GL_LIGHT0, osg::StateAttribute::OFF );
 	state->setMode( GL_LIGHT1, osg::StateAttribute::ON );
 	root->addChild(lumiere);
@@ -737,33 +780,43 @@ int main(void){
     //Creationfeet();
     CreationCD();
 	scene->addChild(geodeSol);
+    scene->addChild(creation_memoryleak(5, fieldX, fieldY, "du_coup.jpg"));
+    scene->addChild(creation_memoryleak(10, fieldX, fieldY, "01.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"remy.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"raffin.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"thon.jpeg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"triboulet.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"tibo.jpg"));
     scene->addChild(creation_troupeau_touches(100, fieldX, fieldY));
-    scene->addChild(creation_panneaux(200, fieldX, fieldY, "stravingo.jpeg"));
-    scene->addChild(creation_panneaux(200, fieldX, fieldY, "doge.jpeg"));
-    scene->addChild(creation_panneaux(200, fieldX, fieldY, "nvidia.png"));
+    scene->addChild(creation_panneaux(50, fieldX, fieldY, "stravingo.jpeg"));
+    scene->addChild(creation_panneaux(50, fieldX, fieldY, "breakfast.jpg"));
+    scene->addChild(creation_panneaux(50, fieldX, fieldY, "calm_down.jpg"));
+    scene->addChild(creation_panneaux(50, fieldX, fieldY, "watermelon.jpg"));
+    scene->addChild(creation_panneaux(50, fieldX, fieldY, "doge.jpeg"));
+    scene->addChild(creation_panneaux(20, fieldX, fieldY, "nvidia.png"));
     scene->addChild(creation_lampadaires(100, fieldX, fieldY));
-    scene->addChild(creation_procs(45, fieldX, fieldY));
+    scene->addChild(creation_procs(30, fieldX, fieldY));
+    //scene->addChild(creation_ventirads(45, fieldX, fieldY));
     scene->addChild(creation_condens(45, fieldX, fieldY));
-    scene->addChild(creation_rams(400, fieldX, fieldY));
+    scene->addChild(creation_rams(250, fieldX, fieldY));
+    CreationCiel();
+	scene->addChild(geodeCiel);
 	viewer.setSceneData(root);
+
 
     /*patSpeed = new osg::PositionAttitudeTransform;
     patSpeed->setUpdateCallback(new RefreshSpeed);
     scene->addChild(patSpeed);*/
 
     sf::SoundBuffer buffer;
-    if (!buffer.loadFromFile("PIGS_WORLD_by_ANTICEPTIK_KAOTEK.ogg"))
+    if (!buffer.loadFromFile("PIGS_WORLD_by_ANTICEPTIK_KAOTEK2.ogg"))
         return -1;
 
     sf::Sound sound;
     sound.setBuffer(buffer);
     sound.play();
     sound.setLoop(true);
+    sound.setVolume(0.2);
 
     viewer.setRunFrameScheme(osgViewer::ViewerBase::ON_DEMAND);
     viewer.setRunFrameScheme(osgViewer::ViewerBase::CONTINUOUS);
