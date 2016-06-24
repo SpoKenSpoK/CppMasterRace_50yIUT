@@ -339,21 +339,24 @@ osg::ref_ptr<osg::Group> creation_memoryleak(int nb_memoryleak, float taillex, f
     osg::ref_ptr<osgParticle::SmokeEffect> memoryleak = new osgParticle::SmokeEffect;
 	memoryleak->setTextureFileName(nameFile);
 	memoryleak->setIntensity(1);
-	memoryleak->setScale(2);
 	memoryleak->setEmitterDuration(99999999.99999);
 
-    for(unsigned int i=0; i<= nb_memoryleak;  ++i){
+    for(unsigned int i=0; i<= nb_memoryleak; ++i){
         int randX = rand()%(int)taillex;
 		int randY = rand()%(int)tailley;
 
-		osg::ref_ptr<osg::PositionAttitudeTransform> PATmemoryleak = new osg::PositionAttitudeTransform();
+        osg::ref_ptr<osg::PositionAttitudeTransform> tsMLeak = new osg::PositionAttitudeTransform();
 
-		PATmemoryleak->setPosition(osg::Vec3(randX-500, randY-500, 0.0));
+        tsMLeak->addChild(memoryleak);
+        tsMLeak->setScale(osg::Vec3(10.0, 10.0, 10.0));
+        tsMLeak->setPosition(osg::Vec3(1000.0, 0.0, 0.0));
 
-		PATmemoryleak->addChild(memoryleak);
-
-		memoryleaks->addChild(PATmemoryleak);
+		osg::ref_ptr<osg::PositionAttitudeTransform> mleak = new osg::PositionAttitudeTransform();
+        mleak->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
+		mleak->addChild(tsMLeak);
+		memoryleaks->addChild(mleak);
     }
+
     return memoryleaks;
 }
 
@@ -516,6 +519,7 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
         osg::AnimationPath::ControlPoint p5(osg::Vec3(0, 50, 12));
         osg::AnimationPath::ControlPoint p6(osg::Vec3(0, 60, 9));
         osg::AnimationPath::ControlPoint p7(osg::Vec3(0, 70, 6));
+
         osg::AnimationPath::ControlPoint p8(osg::Vec3(0, 80, 3));
         osg::AnimationPath::ControlPoint p9(osg::Vec3(0, 90, 0));
         osg::AnimationPath::ControlPoint p10(osg::Vec3(0, 100, 0));
@@ -679,7 +683,8 @@ void CreationCD(){
 
     //Path pour les touches
     osg::ref_ptr<osg::AnimationPath> cdPath = new osg::AnimationPath;
-    //Définition du mode de bouclage sur le chemin défini
+    //Définition du mode de bouclage sur le chemin définiosg::ref_ptr<osg::Node> feetG = osgDB::readNodeFile("feetG.obj");
+    osg::ref_ptr<osg::Node> touche = osgDB::readNodeFile("key.3ds");
     cdPath->setLoopMode(osg::AnimationPath::LOOP);
 
     float height = 0.0;
@@ -733,6 +738,48 @@ void Creationfeet(){
  	scene->addChild(transformFeet);
 }
 
+osg::ref_ptr<osg::Group> creation_numberOne(int nb_number, float startX, float startY, float length, std::string filename){
+    osg::ref_ptr<osg::Group> numbersOne = new osg::Group;
+    osg::ref_ptr<osg::Node> numberOne = osgDB::readNodeFile(filename);
+
+    float xx = startX;
+    float yy = startY;
+    float zz = 60.0f;
+    float scale = 1.0f;
+
+    for(unsigned int i=0; i <= nb_number; ++i){
+        osg::ref_ptr<osg::PositionAttitudeTransform> patOne = new osg::PositionAttitudeTransform();
+        /*patOne->setPosition(osg::Vec3(xx, yy, zz));
+        patOne->setScale(osg::Vec3(10.0, 10.0, 10.0));
+        patOne->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);*/
+        patOne->addChild(numberOne);
+
+        //Path pour les touches
+        osg::ref_ptr<osg::AnimationPath> nbPath = new osg::AnimationPath;
+        //Définition du mode de bouclage sur le chemin définiosg::ref_ptr<osg::Node> feetG = osgDB::readNodeFile("feetG.obj");
+        nbPath->setLoopMode(osg::AnimationPath::LOOP);
+
+        osg::AnimationPath::ControlPoint p0rot(osg::Vec3(xx,yy,zz), osg::Quat(osg::DegreesToRadians(-45.0), osg::Vec3(0.0, 1.0, 0.0)), osg::Vec3(scale, scale, scale));
+        osg::AnimationPath::ControlPoint p1rot(osg::Vec3(xx,yy+length, zz), osg::Quat(osg::DegreesToRadians(-45.0), osg::Vec3(0.0, 1.0, 0.0)), osg::Vec3(scale, scale, scale));
+        osg::AnimationPath::ControlPoint p2rot(osg::Vec3(xx,yy+length, zz), osg::Quat(osg::DegreesToRadians(180.0), osg::Vec3(0.0, 0.0, 1.0)), osg::Vec3(scale, scale, scale));
+        osg::AnimationPath::ControlPoint p3rot(osg::Vec3(xx,yy,zz), osg::Quat(osg::DegreesToRadians(45.0), osg::Vec3(0.0, 1.0, 0.0)), osg::Vec3(scale, scale, scale));
+        osg::AnimationPath::ControlPoint p4rot(osg::Vec3(xx,yy,zz), osg::Quat(osg::DegreesToRadians(180.0), osg::Vec3(0.0, 0.0, 1.0)), osg::Vec3(scale, scale, scale));
+
+        nbPath->insert(0.0f, p0rot);
+        nbPath->insert(10.0f, p1rot);
+        nbPath->insert(12.0f, p2rot);
+        nbPath->insert(22.0f, p3rot);
+        nbPath->insert(24.0f, p4rot);
+
+        osg::ref_ptr<osg::AnimationPathCallback> apc = new osg::AnimationPathCallback(nbPath.get());
+        patOne->setUpdateCallback(apc.get());
+        numbersOne->addChild(patOne);
+
+        xx+=20;
+        }
+    return numbersOne;
+}
+
 int main(void){
     srand(time(NULL));
 	osg::DisplaySettings::instance()->setNumMultiSamples( 4 );
@@ -760,8 +807,8 @@ int main(void){
     //Creationfeet();
     CreationCD();
 	scene->addChild(geodeSol);
-    scene->addChild(creation_memoryleak(5, fieldX, fieldY, "du_coup.jpg"));
-    scene->addChild(creation_memoryleak(10, fieldX, fieldY, "01.jpg"));
+    //scene->addChild(creation_memoryleak(0, fieldX, fieldY, "du_coup.jpg"));
+    //scene->addChild(creation_memoryleak(10, fieldX, fieldY, "01.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"remy.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"raffin.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"thon.jpeg"));
@@ -776,8 +823,12 @@ int main(void){
     //scene->addChild(creation_ventirads(45, fieldX, fieldY));
     scene->addChild(creation_condens(45, fieldX, fieldY));
     scene->addChild(creation_rams(250, fieldX, fieldY));
-    CreationCiel();
-	scene->addChild(geodeCiel);
+    for (float i = 0, y = 0; i < 300; i = i + 20.0, ++y) {
+        scene->addChild(creation_numberOne(50, y, i, fieldX, "1.3ds"));
+        scene->addChild(creation_numberOne(50, y + 10.0, i, fieldX, "0.3ds"));
+    }
+    //CreationCiel();
+	//scene->addChild(geodeCiel);
 	//manip->setNode(geodeSol);
 	//manip->setHeight(1.5);
 	viewer.setSceneData(root);
@@ -795,7 +846,7 @@ int main(void){
     sound.setBuffer(buffer);
     sound.play();
     sound.setLoop(true);
-    sound.setVolume(1);
+    sound.setVolume(100);
 
     viewer.setRunFrameScheme(osgViewer::ViewerBase::ON_DEMAND);
     viewer.setRunFrameScheme(osgViewer::ViewerBase::CONTINUOUS);
