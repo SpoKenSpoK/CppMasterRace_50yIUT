@@ -733,6 +733,29 @@ void Creationfeet(){
  	scene->addChild(transformFeet);
 }
 
+void CreationWalls(){
+	textureCiel = new osg::Texture2D;
+	textureCiel->setImage(osgDB::readImageFile("binaire.jpg"));
+	textureCiel->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
+	textureCiel->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR );
+	textureCiel->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
+	textureCiel->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
+
+	quadCiel = osg::createTexturedQuadGeometry(
+	osg::Vec3(-50000.0, -50000.0, 200.0), // Coin de départ
+	osg::Vec3(100000, 0.0, 0.0),  // largeur
+	osg::Vec3(0.0, 100000, 0.0),  // hauteur
+	0.0, 0.0, 80.0, 80.0); 		// Coordonnées de texture gauche/bas/droit/haut
+								// Si vous mettez 4.0 à la place de 1.0,
+								// la texture sera répétée 4 fois
+	quadCiel->getOrCreateStateSet()->setTextureAttributeAndModes(0, textureCiel.get());
+	//quadCiel->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+
+	geodeCiel = new osg::Geode;
+	geodeCiel->addDrawable(quadCiel);
+	scene->addChild(geode1)
+}
+
 int main(void){
     srand(time(NULL));
 	osg::DisplaySettings::instance()->setNumMultiSamples( 4 );
@@ -759,6 +782,7 @@ int main(void){
 	CreateSol();
     //Creationfeet();
     CreationCD();
+    CreationWalls();
 	scene->addChild(geodeSol);
     scene->addChild(creation_memoryleak(5, fieldX, fieldY, "du_coup.jpg"));
     scene->addChild(creation_memoryleak(10, fieldX, fieldY, "01.jpg"));
@@ -778,8 +802,8 @@ int main(void){
     scene->addChild(creation_rams(250, fieldX, fieldY));
     CreationCiel();
 	scene->addChild(geodeCiel);
-	//manip->setNode(geodeSol);
-	//manip->setHeight(1.5);
+	manip->setNode(geodeSol);
+	manip->setHeight(10.5);
 	viewer.setSceneData(root);
 
 
