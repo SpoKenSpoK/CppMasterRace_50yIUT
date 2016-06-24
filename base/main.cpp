@@ -11,6 +11,7 @@
 #include <osgGA/DriveManipulator>
 #include <osgSim/DOFTransform>
 #include <osg/AnimationPath>
+#include <osgParticle/SmokeEffect>
 #include <string>
 #include <SFML/Audio.hpp>
 #include <SFML/System.hpp>
@@ -19,7 +20,7 @@
 
 osg::ref_ptr<osg::Group> root;
 osgViewer::Viewer viewer;
-osg::Group* scene;
+osg::ref_ptr<osg::Group> scene;
 
 osg::ref_ptr<osg::Geometry> quadSol;
 osg::ref_ptr<osg::Texture2D> textureSol;
@@ -332,9 +333,27 @@ osg::ref_ptr<osg::Group> creation_condens(int nb_condenss, float taillex, float 
     return condenss;
 }
 
+osg::ref_ptr<osg::Group> creation_memoryleak(int nb_memoryleak, float taillex, float tailley, std::string nameFile){
+    osg::ref_ptr<osg::Group> memoryleaks = new osg::Group;
+    osg::ref_ptr<osgParticle::SmokeEffect> memoryleak = new osgParticle::SmokeEffect;
+	memoryleak->setTextureFileName(nameFile);
+	memoryleak->setIntensity(1);
+	memoryleak->setScale(4);
+	memoryleak->setEmitterDuration(99999999.99999);
+
+    for(unsigned int i=0; i<= nb_memoryleak;  ++i){
+        int randX = rand()%(int)taillex;
+		int randY = rand()%(int)tailley;
+		osg::ref_ptr<osg::PositionAttitudeTransform> PATmemoryleak = new osg::PositionAttitudeTransform();
+		PATmemoryleak->addChild(memoryleak);
+		PATmemoryleak->setPosition(osg::Vec3(randX, randY, 0.0));
+		memoryleaks->addChild(PATmemoryleak);
+    }
+    return memoryleaks;
+}
+
 osg::ref_ptr<osg::Group> creation_lampadaires(int nb_lampadaires, float taillex, float tailley){
     osg::ref_ptr<osg::Node> lampadaire = osgDB::readNodeFile("led2.3ds");
-    //osg::ref_ptr<osg::Node> light = osg::LightSource();
 
     osg::ref_ptr<osg::Group> lampadaires = new osg::Group;
     for(unsigned int i=0; i<= nb_lampadaires; ++i){
@@ -400,7 +419,7 @@ public:
 	_node = &node;
 	traverse( node ); // On continue le parcours du graphe
 	}
-	osg::Node* getNode() { return _node.get(); }
+	osg::ref_ptr<osg::Node> getNode() { return _node.get(); }
 protected:
 	std::string _name;
 	osg::ref_ptr<osg::Node> _node;
@@ -516,15 +535,15 @@ osg::ref_ptr<osg::Group> creation_troupeau_touches(int nb_touche, float taillex,
     return touches;
 }
 
-osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley, std::string filename){
+osg::ref_ptr<osg::Group> creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float tailley, std::string filename){
 
-	osg::Sphere* corpsChikoiseau = new osg::Sphere(osg::Vec3(0.0,0.0,5.0), 1.0);
-	osg::ShapeDrawable* shapeDrawable = new osg::ShapeDrawable(corpsChikoiseau);
-	osg::Geode* geode = new osg::Geode();
+	osg::ref_ptr<osg::Sphere> corpsChikoiseau = new osg::Sphere(osg::Vec3(0.0,0.0,5.0), 1.0);
+	osg::ref_ptr<osg::ShapeDrawable> shapeDrawable = new osg::ShapeDrawable(corpsChikoiseau);
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode();
 	geode->addDrawable(shapeDrawable);
 
 	// create a simple material
-	osg::Material *material = new osg::Material();
+	osg::ref_ptr<osg::Material> material = new osg::Material();
 	material->setEmission(osg::Material::FRONT, osg::Vec4(0.8, 0.8, 0.8, 1.0));
 
     osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
@@ -537,28 +556,28 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
     osg::ref_ptr<osg::Image> image = osgDB::readImageFile(filename);
     texture->setImage(image);
 
-	osg::Node* aileD = osgDB::readNodeFile("wingD.obj");
-	osg::Node* aileG = osgDB::readNodeFile("wingG.obj");
+	osg::ref_ptr<osg::Node> aileD = osgDB::readNodeFile("wingD.obj");
+	osg::ref_ptr<osg::Node> aileG = osgDB::readNodeFile("wingG.obj");
 
-	osg::Group* troupeau = new osg::Group;
+	osg::ref_ptr<osg::Group> troupeau = new osg::Group;
 	for(unsigned int i = 0; i < nb_chikoiseau; ++i){
         //osg::ref_ptr<osg::Image> image = osgDB::readImageFile(tete);
-        osg::StateSet *sphereStateSet = geode->getOrCreateStateSet();
+        osg::ref_ptr<osg::StateSet> sphereStateSet = geode->getOrCreateStateSet();
         sphereStateSet->ref();
     	sphereStateSet->setAttribute(material);
         sphereStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
 
 		int randX = rand()%(int)taillex;
 		int randY = rand()%(int)tailley;
-		osg::PositionAttitudeTransform* transformChikoiseau = new osg::PositionAttitudeTransform();
+		osg::ref_ptr<osg::PositionAttitudeTransform> transformChikoiseau = new osg::PositionAttitudeTransform();
 		transformChikoiseau->setPosition(osg::Vec3(randX, randY, 1.0));
 
 		float angle = rand()%360;
 		transformChikoiseau->setAttitude(osg::Quat(osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
 		transformChikoiseau->addChild(geode);
 
-		osg::PositionAttitudeTransform* transformAileG = new osg::PositionAttitudeTransform();
-        osg::PositionAttitudeTransform* transformAileD = new osg::PositionAttitudeTransform();
+		osg::ref_ptr<osg::PositionAttitudeTransform> transformAileG = new osg::PositionAttitudeTransform();
+        osg::ref_ptr<osg::PositionAttitudeTransform> transformAileD = new osg::PositionAttitudeTransform();
 
 		transformAileG->setPosition(osg::Vec3(randX, randY, 6.0));
         transformAileD->setPosition(osg::Vec3(randX, randY, 6.0));
@@ -569,9 +588,9 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
         transformAileG->setScale(osg::Vec3(0.5,0.5,0.5));
         transformAileD->setScale(osg::Vec3(0.5,0.5,0.5));
 
-		osg::PositionAttitudeTransform* Chikoiseau = new osg::PositionAttitudeTransform();
-		osg::PositionAttitudeTransform* aileDRotate = new osg::PositionAttitudeTransform();
-		osg::PositionAttitudeTransform* aileGRotate = new osg::PositionAttitudeTransform();
+		osg::ref_ptr<osg::PositionAttitudeTransform> Chikoiseau = new osg::PositionAttitudeTransform();
+		osg::ref_ptr<osg::PositionAttitudeTransform> aileDRotate = new osg::PositionAttitudeTransform();
+		osg::ref_ptr<osg::PositionAttitudeTransform> aileGRotate = new osg::PositionAttitudeTransform();
 
 		aileDRotate->addChild(aileG);
 		aileGRotate->addChild(aileD);
@@ -593,25 +612,25 @@ osg::Group* creation_troupeau_chikoiseau(int nb_chikoiseau, float taillex, float
 	return troupeau;
 }
 
-osg::Group* creation_panneaux(int nb_panneaux, float taillex, float tailley, std::string nomImage){
+osg::ref_ptr<osg::Group> creation_panneaux(int nb_panneaux, float taillex, float tailley, std::string nomImage){
 
-	osg::Box* shapePanneau = new osg::Box(osg::Vec3(0.0,0.0,7.0), 0.01, 4.0, 4.0);
-	osg::ShapeDrawable* shapeDrawable = new osg::ShapeDrawable(shapePanneau);
-	osg::Geode* geode = new osg::Geode();
+	osg::ref_ptr<osg::Box> shapePanneau = new osg::Box(osg::Vec3(0.0,0.0,7.0), 0.01, 4.0, 4.0);
+	osg::ref_ptr<osg::ShapeDrawable> shapeDrawable = new osg::ShapeDrawable(shapePanneau);
+	osg::ref_ptr<osg::Geode> geode = new osg::Geode();
 	geode->addDrawable(shapeDrawable);
 
 	// create a simple material
-	osg::Material *material = new osg::Material();
+	osg::ref_ptr<osg::Material> material = new osg::Material();
 	material->setEmission(osg::Material::FRONT, osg::Vec4(0.8, 0.8, 0.8, 1.0));
 
 	// create a texture
 	// load image for texture
-	osg::Image *image = osgDB::readImageFile(nomImage);
+	osg::ref_ptr<osg::Image> image = osgDB::readImageFile(nomImage);
 	if (!image) {
 		std::cout << "Couldn't load texture." << std::endl;
 		return NULL;
 	}
-	osg::Texture2D *texture = new osg::Texture2D;
+	osg::ref_ptr<osg::Texture2D> texture = new osg::Texture2D;
 	texture->setDataVariance(osg::Object::DYNAMIC);
 	texture->setFilter(osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR);
 	texture->setFilter(osg::Texture::MAG_FILTER, osg::Texture::LINEAR);
@@ -619,17 +638,17 @@ osg::Group* creation_panneaux(int nb_panneaux, float taillex, float tailley, std
 	texture->setWrap(osg::Texture::WRAP_T, osg::Texture::CLAMP);
 	texture->setImage(image);
     //assign the material and texture to the sphere
-    osg::StateSet *boxStateSet = geode->getOrCreateStateSet();
+    osg::ref_ptr<osg::StateSet> boxStateSet = geode->getOrCreateStateSet();
     boxStateSet->ref();
 	boxStateSet->setAttribute(material);
 	boxStateSet->setTextureAttributeAndModes(0, texture, osg::StateAttribute::ON);
 
-	osg::Group* troupeau = new osg::Group;
+	osg::ref_ptr<osg::Group> troupeau = new osg::Group;
 	for(unsigned int i = 0; i < nb_panneaux; ++i){
 		int randX = rand()%(int)taillex;
 		int randY = rand()%(int)tailley;
 
-		osg::PositionAttitudeTransform* transformPanneau = new osg::PositionAttitudeTransform();
+		osg::ref_ptr<osg::PositionAttitudeTransform> transformPanneau = new osg::PositionAttitudeTransform();
 		transformPanneau->setPosition(osg::Vec3(randX, randY, 1.0));
 		float angle = rand()%360;
 		transformPanneau->setAttitude(osg::Quat(osg::DegreesToRadians(0.0), osg::Vec3(1.0, 0.0, 0.0), osg::DegreesToRadians(50.0), osg::Vec3(0.0, 1.0, 0.0), osg::DegreesToRadians(angle), osg::Vec3(0.0, 0.0, 1.0)));
@@ -644,7 +663,7 @@ void CreationCD(){
     osg::ref_ptr<osg::PositionAttitudeTransform> transformCD;
     osg::ref_ptr<osg::Node> CD;
 
- 	CD = osgDB::readNodeFile("CD.3ds");
+ 	CD = osgDB::readNodeFile("cd.3ds");
 
  	transformCD = new osg::PositionAttitudeTransform;
  	transformCD->setUpdateCallback(new RotationCD);
@@ -723,7 +742,7 @@ int main(void){
 	lumiere->getLight()->setAmbient(osg::Vec4(0.3, 0.3, 0.3, 1.0));
 	lumiere->getLight()->setDiffuse(osg::Vec4(0.5, 0.5, 0.5, 1.0));
 	lumiere->getLight()->setSpecular(osg::Vec4(1.0, 1.0, 1.0, 1.0));
-	osg::StateSet* state = scene->getOrCreateStateSet();
+	osg::ref_ptr<osg::StateSet> state = scene->getOrCreateStateSet();
 	state->setMode( GL_LIGHT0, osg::StateAttribute::OFF );
 	state->setMode( GL_LIGHT1, osg::StateAttribute::ON );
 	root->addChild(lumiere);
@@ -745,7 +764,8 @@ int main(void){
     scene->addChild(creation_lampadaires(100, fieldX, fieldY));
     scene->addChild(creation_procs(100, fieldX, fieldY));
     scene->addChild(creation_condens(45, fieldX, fieldY));
-    scene->addChild(creation_rams(400, fieldX, fieldY));
+    scene->addChild(creation_rams(250, fieldX, fieldY));
+    scene->addChild(creation_memoryleak(100, fieldX, fieldY, "du_coup.jpg"));
 	viewer.setSceneData(root);
 
     /*patSpeed = new osg::PositionAttitudeTransform;
@@ -760,6 +780,15 @@ int main(void){
     sound.setBuffer(buffer);
     sound.play();
     sound.setLoop(true);
+
+    // sf::SoundBuffer buffer_;
+    // if (!buffer_.loadFromFile("No_No_No_Cat.ogg"))
+    //     return -1;
+
+    // sf::Sound sound_;
+    // sound_.setBuffer(buffer_);
+    // sound_.play();
+    // sound_.setLoop(true);
 
     viewer.setRunFrameScheme(osgViewer::ViewerBase::ON_DEMAND);
     viewer.setRunFrameScheme(osgViewer::ViewerBase::CONTINUOUS);
