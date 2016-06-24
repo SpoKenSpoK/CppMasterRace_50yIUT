@@ -1,7 +1,6 @@
-#Concours :
-#50 ans de l'IUT en France
-#50 heures de programmation pour l'IUT d'Arles
-#Sujet : A quoi rêvent les machines
+#Concours 50 ans de l'IUT en France
+##50 heures de programmation pour l'IUT d'Arles
+##Sujet : A quoi rêvent les machines
 
 Ci-dessous vous trouverez les librairies nécessaires au bon fonctionnement du programme ainsi que divers "astuces" - lel.
 
