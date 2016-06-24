@@ -286,9 +286,9 @@ void CreationCiel(){
 	textureCiel->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
 
 	quadCiel = osg::createTexturedQuadGeometry(
-	osg::Vec3(-10000.0, -10000.0, 200.0), // Coin de départ
-	osg::Vec3(10000, 0.0, 200.0),  // largeur
-	osg::Vec3(0.0, 10000, 200.0),  // hauteur
+	osg::Vec3(-1000.0, -1000.0, 200.0), // Coin de départ
+	osg::Vec3(1000, 0.0, 200.0),  // largeur
+	osg::Vec3(0.0, 1000, 200.0),  // hauteur
 	0.0, 0.0, 80.0, 80.0); 		// Coordonnées de texture gauche/bas/droit/haut
 								// Si vous mettez 4.0 à la place de 1.0,
 								// la texture sera répétée 4 fois
@@ -365,8 +365,7 @@ osg::ref_ptr<osg::Group> creation_memoryleak(int nb_memoryleak, float taillex, f
 
 		osg::ref_ptr<osg::PositionAttitudeTransform> PATmemoryleak = new osg::PositionAttitudeTransform();
 
-		std::cout << randX << " : " << randY << std::endl;
-		PATmemoryleak->setPosition(osg::Vec3(randX, randY, 0.0));
+		PATmemoryleak->setPosition(osg::Vec3(randX-500, randY-500, 0.0));
 
 		PATmemoryleak->addChild(memoryleak);
 
@@ -788,11 +787,8 @@ int main(void){
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"triboulet.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"tibo.jpg"));
     scene->addChild(creation_troupeau_touches(100, fieldX, fieldY));
-    scene->addChild(creation_panneaux(50, fieldX, fieldY, "stravingo.jpeg"));
-    scene->addChild(creation_panneaux(50, fieldX, fieldY, "breakfast.jpg"));
-    scene->addChild(creation_panneaux(50, fieldX, fieldY, "calm_down.jpg"));
-    scene->addChild(creation_panneaux(50, fieldX, fieldY, "watermelon.jpg"));
-    scene->addChild(creation_panneaux(50, fieldX, fieldY, "doge.jpeg"));
+    scene->addChild(creation_panneaux(80, fieldX, fieldY, "stravingo.jpeg"));
+    scene->addChild(creation_panneaux(80, fieldX, fieldY, "doge.jpeg"));
     scene->addChild(creation_panneaux(20, fieldX, fieldY, "nvidia.png"));
     scene->addChild(creation_lampadaires(100, fieldX, fieldY));
     scene->addChild(creation_procs(30, fieldX, fieldY));
@@ -801,6 +797,7 @@ int main(void){
     scene->addChild(creation_rams(250, fieldX, fieldY));
     CreationCiel();
 	scene->addChild(geodeCiel);
+	manip->setNode(geodeSol);
 	viewer.setSceneData(root);
 
 
@@ -816,7 +813,7 @@ int main(void){
     sound.setBuffer(buffer);
     sound.play();
     sound.setLoop(true);
-    sound.setVolume(0.2);
+    sound.setVolume(1);
 
     viewer.setRunFrameScheme(osgViewer::ViewerBase::ON_DEMAND);
     viewer.setRunFrameScheme(osgViewer::ViewerBase::CONTINUOUS);
