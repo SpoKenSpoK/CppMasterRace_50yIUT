@@ -83,7 +83,8 @@ public:
 		}
 		pos->setAttitude(osg::Quat(osg::DegreesToRadians(anglePiedG), osg::Vec3(1.0, 0.0, 0.0)));
 
-
+		viewer.getCamera()->setViewMatrixAsLookAt( osg::Vec3d(1000.0, 1000.0, 0.0), osg::Vec3d(0.0,0.0,0.0), osg::Vec3d(0.0, 0.0, 1.0) );
+	
 
 
 
@@ -801,8 +802,6 @@ int main(void){
     CreationCiel();
 	scene->addChild(geodeCiel);
 	viewer.setSceneData(root);
-	viewer.getCamera()->setViewMatrixAsLookAt( Vec3d(1000.0, 1000.0, 0.0), Vec3d(0.0,0.0,0.0), Vec3d(0.0, 0.0, 1.0) );
-	viewer.frame();
 
 
     /*patSpeed = new osg::PositionAttitudeTransform;
