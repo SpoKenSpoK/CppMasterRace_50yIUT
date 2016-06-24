@@ -23,13 +23,16 @@ osgViewer::Viewer viewer;
 osg::ref_ptr<osg::Group> scene;
 
 osg::ref_ptr<osg::Geometry> quadSol;
+osg::ref_ptr<osg::Geometry> quadCiel;
 osg::ref_ptr<osg::Texture2D> textureSol;
+osg::ref_ptr<osg::Texture2D> textureCiel;
 
 osg::ref_ptr<osg::PositionAttitudeTransform> transformFeet;
 osg::ref_ptr<osg::PositionAttitudeTransform> patSpeed;
 osg::ref_ptr<osg::Node> feet;
 
 osg::ref_ptr<osg::Geode> geodeSol;
+osg::ref_ptr<osg::Geode> geodeCiel;
 
 osg::ref_ptr<osgGA::DriveManipulator> manip;
 
@@ -53,11 +56,12 @@ public:
 class Barette : public osg::PositionAttitudeTransform{
 public:
 	Barette(float _angle);
-	float angle;
+	osg::Vec2 vit;
 };
 
 Barette::Barette(float _angle){
-	angle = _angle;
+	vit.x() = cos(_angle)/10;
+	vit.y() = sin(_angle)/10;
 }
 
 float anglePiedG = 0.0;
@@ -78,6 +82,12 @@ public:
 			if(anglePiedG>50) monte = true;
 		}
 		pos->setAttitude(osg::Quat(osg::DegreesToRadians(anglePiedG), osg::Vec3(1.0, 0.0, 0.0)));
+
+
+
+
+
+
     }
 };
 
@@ -129,14 +139,13 @@ public:
     {
 		Barette* pos = (Barette*)n;
 
-		float angle = pos->angle;
-		pos->setPosition(osg::Vec3(pos->getPosition().x()+(cos(angle)/10), pos->getPosition().y()+(sin(angle)/10), pos->getPosition().z()));
+		pos->setPosition(osg::Vec3(pos->getPosition().x()+pos->vit.x(), pos->getPosition().y()+pos->vit.y(), pos->getPosition().z()));
 
-		if(pos->getPosition().x() < 0 or pos->getPosition().x() > fieldX or pos->getPosition().y() < 0 or pos->getPosition().y() > fieldY){
-			if(angle > 0) angle -= 180;
-			else angle += 180;
-		}
-
+		if(pos->getPosition().x() < 0 or pos->getPosition().x() > fieldX)
+			pos->vit.x() = -pos->vit.x();
+		else if (pos->getPosition().y() < 0 or pos->getPosition().y() > fieldY)
+			pos->vit.y() = -pos->vit.y();
+		
     }
 };
 
@@ -210,20 +219,6 @@ public:
     }
 };
 
-float angleCD = 0.0;
-class RotationCD : public osg::NodeCallback
-{
-public:
-    virtual void operator() (osg::Node* n, osg::NodeVisitor* nv)
-    {
-        // code pour modifier le nœud, par exemple la position si il s 'agit
-        // d'un nœud de type osg::PositionAttitudeTransform :
-        osg::PositionAttitudeTransform* pos = (osg::PositionAttitudeTransform*)n;
-		angleCD += 0.04;
-		pos->setAttitude(osg::Quat(osg::DegreesToRadians(angleCD), osg::Vec3(0.0, 0.0, 1.0)));
-    }
-};
-
 class GestionEvenements : public osgGA::GUIEventHandler
 {
 	public:
@@ -279,6 +274,28 @@ void CreateSol(){
 
 	geodeSol = new osg::Geode;
 	geodeSol->addDrawable(quadSol);
+}
+
+void CreationCiel(){
+	textureCiel = new osg::Texture2D;
+	textureCiel->setImage(osgDB::readImageFile("binaire.jpg"));
+	textureCiel->setFilter( osg::Texture::MIN_FILTER, osg::Texture::LINEAR_MIPMAP_LINEAR );
+	textureCiel->setFilter( osg::Texture::MAG_FILTER, osg::Texture::LINEAR );
+	textureCiel->setWrap( osg::Texture::WRAP_S, osg::Texture::REPEAT );
+	textureCiel->setWrap( osg::Texture::WRAP_T, osg::Texture::REPEAT );
+
+	quadCiel = osg::createTexturedQuadGeometry(
+	osg::Vec3(-10000.0, -10000.0, 200.0), // Coin de départ
+	osg::Vec3(10000, 0.0, 200.0),  // largeur
+	osg::Vec3(0.0, 10000, 200.0),  // hauteur
+	0.0, 0.0, 80.0, 80.0); 		// Coordonnées de texture gauche/bas/droit/haut
+								// Si vous mettez 4.0 à la place de 1.0,
+								// la texture sera répétée 4 fois
+	quadCiel->getOrCreateStateSet()->setTextureAttributeAndModes(0, textureCiel.get());
+	//quadCiel->getOrCreateStateSet()->setMode(GL_DEPTH_TEST, osg::StateAttribute::ON);
+
+	geodeCiel = new osg::Geode;
+	geodeCiel->addDrawable(quadCiel);
 }
 
 osg::ref_ptr<osg::Group> creation_procs(int nb_procs, float taillex, float tailley){
@@ -338,15 +355,20 @@ osg::ref_ptr<osg::Group> creation_memoryleak(int nb_memoryleak, float taillex, f
     osg::ref_ptr<osgParticle::SmokeEffect> memoryleak = new osgParticle::SmokeEffect;
 	memoryleak->setTextureFileName(nameFile);
 	memoryleak->setIntensity(1);
-	memoryleak->setScale(4);
+	memoryleak->setScale(2);
 	memoryleak->setEmitterDuration(99999999.99999);
 
     for(unsigned int i=0; i<= nb_memoryleak;  ++i){
         int randX = rand()%(int)taillex;
 		int randY = rand()%(int)tailley;
+
 		osg::ref_ptr<osg::PositionAttitudeTransform> PATmemoryleak = new osg::PositionAttitudeTransform();
-		PATmemoryleak->addChild(memoryleak);
+
+		std::cout << randX << " : " << randY << std::endl;
 		PATmemoryleak->setPosition(osg::Vec3(randX, randY, 0.0));
+
+		PATmemoryleak->addChild(memoryleak);
+
 		memoryleaks->addChild(PATmemoryleak);
     }
     return memoryleaks;
@@ -666,7 +688,6 @@ void CreationCD(){
  	CD = osgDB::readNodeFile("cd.3ds");
 
  	transformCD = new osg::PositionAttitudeTransform;
- 	transformCD->setUpdateCallback(new RotationCD);
  	transformCD->setPosition(osg::Vec3(0,0,0));
     transformCD->setScale(osg::Vec3(1.0, 1.0, 1.0));
  	transformCD->getOrCreateStateSet()->setMode(GL_NORMALIZE,osg::StateAttribute::ON);
@@ -758,43 +779,45 @@ int main(void){
     //Creationfeet();
     CreationCD();
 	scene->addChild(geodeSol);
+    scene->addChild(creation_memoryleak(5, fieldX, fieldY, "du_coup.jpg"));
+    scene->addChild(creation_memoryleak(10, fieldX, fieldY, "01.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"remy.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"raffin.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"thon.jpeg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"triboulet.jpg"));
 	scene->addChild(creation_troupeau_chikoiseau(25, fieldX, fieldY,"tibo.jpg"));
     scene->addChild(creation_troupeau_touches(100, fieldX, fieldY));
-    scene->addChild(creation_panneaux(200, fieldX, fieldY, "stravingo.jpeg"));
-    scene->addChild(creation_panneaux(200, fieldX, fieldY, "doge.jpeg"));
-    scene->addChild(creation_panneaux(200, fieldX, fieldY, "nvidia.png"));
+    scene->addChild(creation_panneaux(50, fieldX, fieldY, "stravingo.jpeg"));
+    scene->addChild(creation_panneaux(50, fieldX, fieldY, "breakfast.jpg"));
+    scene->addChild(creation_panneaux(50, fieldX, fieldY, "calm_down.jpg"));
+    scene->addChild(creation_panneaux(50, fieldX, fieldY, "watermelon.jpg"));
+    scene->addChild(creation_panneaux(50, fieldX, fieldY, "doge.jpeg"));
+    scene->addChild(creation_panneaux(20, fieldX, fieldY, "nvidia.png"));
     scene->addChild(creation_lampadaires(100, fieldX, fieldY));
-    scene->addChild(creation_procs(45, fieldX, fieldY));
+    scene->addChild(creation_procs(30, fieldX, fieldY));
+    //scene->addChild(creation_ventirads(45, fieldX, fieldY));
     scene->addChild(creation_condens(45, fieldX, fieldY));
     scene->addChild(creation_rams(250, fieldX, fieldY));
-    scene->addChild(creation_memoryleak(100, fieldX, fieldY, "du_coup.jpg"));
+    CreationCiel();
+	scene->addChild(geodeCiel);
 	viewer.setSceneData(root);
+	viewer.getCamera()->setViewMatrixAsLookAt( Vec3d(1000.0, 1000.0, 0.0), Vec3d(0.0,0.0,0.0), Vec3d(0.0, 0.0, 1.0) );
+	viewer.frame();
+
 
     /*patSpeed = new osg::PositionAttitudeTransform;
     patSpeed->setUpdateCallback(new RefreshSpeed);
     scene->addChild(patSpeed);*/
 
     sf::SoundBuffer buffer;
-    if (!buffer.loadFromFile("PIGS_WORLD_by_ANTICEPTIK_KAOTEK.ogg"))
+    if (!buffer.loadFromFile("PIGS_WORLD_by_ANTICEPTIK_KAOTEK2.ogg"))
         return -1;
 
     sf::Sound sound;
     sound.setBuffer(buffer);
     sound.play();
     sound.setLoop(true);
-
-    // sf::SoundBuffer buffer_;
-    // if (!buffer_.loadFromFile("No_No_No_Cat.ogg"))
-    //     return -1;
-
-    // sf::Sound sound_;
-    // sound_.setBuffer(buffer_);
-    // sound_.play();
-    // sound_.setLoop(true);
+    sound.setVolume(0.2);
 
     viewer.setRunFrameScheme(osgViewer::ViewerBase::ON_DEMAND);
     viewer.setRunFrameScheme(osgViewer::ViewerBase::CONTINUOUS);
