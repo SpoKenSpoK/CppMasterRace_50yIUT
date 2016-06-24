@@ -717,7 +717,7 @@ int main(void){
 	viewer.getCamera()->setClearColor( osg::Vec4( 0.0,0.0,0.0,1) );
 	viewer.addEventHandler(new osgViewer::StatsHandler);
 	manip = new osgGA::DriveManipulator();
-	viewer.setCameraManipulator(manip.get());
+	//viewer.setCameraManipulator(manip.get());
 	scene = new osg::Group;
 	root = new osg::Group;
 
